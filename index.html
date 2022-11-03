@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HOMEd ZigBee</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/app.css">
+    </head>
+    <body>
+        <div id="modal">
+            <div class="data"></div>
+        </div>
+        <div class="header">
+            <div class="container">
+                <span id="permitJoin" href="#"></span>
+            </div>
+        </div>
+        <div class="content">
+            <div class="container">
+                <table id="deviceTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Manufacturer</th>
+                            <th>Model</th>
+                            <th>Logical Type</th>
+                            <th>NWK Address</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" align="center">
+                                <div class="loader"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="container">
+               0.0.3
+            </div>
+        </div>
+    </body>
+    <script src="js/mqtt.min.js"></script>
+    <script src="js/app.js"></script>
+</html>
