@@ -31,7 +31,7 @@ mqtt.onMessageArrived = function (message)
         if (!devicesLoaded)
         {
             document.querySelector('#deviceTable tbody').innerHTML = '';
-            zigbee.devices.forEach(device => deviceTableAppend(device));
+            zigbee.devices.forEach(device => { if (!device.hasOwnProperty('removed')) deviceTableAppend(device) });
             devicesLoaded = true;
         }
     }
