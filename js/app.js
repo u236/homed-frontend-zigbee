@@ -13,29 +13,19 @@ var prefix = 'homed';
 var devicesLoaded = false;
 var zigbee, modalData;
 
+//
+
 mqtt.connect(options);
 
 mqtt.onConnectionLost = function (response)
 {
-    console.log('mqtt connection lost: ' + response.errorMessage);
+    console.log('MQTT connection lost: ' + response.errorMessage);
     setTimeout(mqtt.connect(options), 1000);
 };
 
 mqtt.onMessageArrived = function (message)
 {
-    if (message.destinationName == prefix + '/status/zigbee')
-    {
-        zigbee = JSON.parse(message.payloadString);
-        document.querySelector('#permitJoin').innerHTML = 'PERMIT JOIN ' + (zigbee.permitJoin ? '<span class="enabled">ENABLED</span>' : '<span class="disabled">DISABLED</span>');
-
-        if (!devicesLoaded)
-        {
-            document.querySelector('#deviceTable tbody').innerHTML = '';
-            zigbee.devices.forEach(device => { if (!device.hasOwnProperty('removed')) deviceTableAppend(device) });
-            devicesLoaded = true;
-        }
-    }
-    else if (message.destinationName.startsWith(prefix + '/fd/zigbee/'))
+    if (message.destinationName.startsWith(prefix + '/fd/zigbee/'))
     {
         var list = message.destinationName.split('/');
 
@@ -45,34 +35,74 @@ mqtt.onMessageArrived = function (message)
             document.querySelector('#modal .message').innerHTML = JSON.stringify(payload, null, 4);
         }
     }
-}
+    else if (message.destinationName == prefix + '/event/zigbee')
+    {
+        var payload = JSON.parse(message.payloadString);
+        var device = 'Device <b>' + payload.device + '</b> ';
 
-document.querySelector('#permitJoin').addEventListener('click', function()
-{
-    publishCommand({action: 'setPermitJoin', enabled: zigbee.permitJoin ? false : true});
-});
+        switch (payload.event)
+        {
+            case 'deviceJoined':
+                appendToast(device + 'joined network');
+                break;
+
+            case 'deviceLeft':
+                appendToast(device + 'left network', 'warning');
+                break;
+
+            case 'interviewError':
+                appendToast(device + 'interview error', 'error');
+                break;
+
+            case 'interviewTimeout':
+                appendToast(device + 'interview timed out', 'error');
+                break;
+
+            case 'interviewFinished':
+                appendToast(device + 'interview finished');
+                clearDeviceTable();
+                break;
+        }
+       
+    }
+    else if (message.destinationName == prefix + '/status/zigbee')
+    {
+        zigbee = JSON.parse(message.payloadString);
+        document.querySelector('#permitJoin').innerHTML = 'PERMIT JOIN ' + (zigbee.permitJoin ? '<span class="enabled">ENABLED</span>' : '<span class="disabled">DISABLED</span>');
+
+        if (!devicesLoaded)
+        {
+            document.querySelector('#deviceTable tbody').innerHTML = '';
+            zigbee.devices.forEach(device => { if (!device.hasOwnProperty('removed')) appendDeviceTable(device) });
+            devicesLoaded = true;
+        }
+    }
+}
 
 function mqttOnSuccess()
 {
-    console.log('mqtt connected');
-    mqtt.subscribe(prefix + '/status/zigbee');
+    console.log('MQTT connected');
     mqtt.subscribe(prefix + '/fd/zigbee/#');
+    mqtt.subscribe(prefix + '/event/zigbee');
+    mqtt.subscribe(prefix + '/status/zigbee');
 }
 
 function mqttOnFailure()
 {
-    console.log('mqtt connection failed');
+    console.log('MQTT connection failed');
     setTimeout(mqtt.connect(options), 1000);
 }
 
-function publishCommand(data)
+function mqttPublishCommand(data)
 {
     var message = new Paho.MQTT.Message(JSON.stringify(data));
     message.destinationName = prefix + '/command/zigbee';
     mqtt.send(message);
 }
 
-function deviceTableAppend(device)
+//
+
+function appendDeviceTable(device)
 {
     var logicalType = ['coordinator', 'router', 'end device'], lastSeen = '-';
     var row = document.querySelector('#deviceTable tbody').insertRow(), cell = [];
@@ -83,7 +113,7 @@ function deviceTableAppend(device)
         lastSeen = ('0' + date.getDay()).slice(-2) + '.' + ('0' + date.getMonth()).slice(-2) + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
     }
 
-    row.addEventListener('click', function() { modalData = device; modalShowDeviceInfo(); });
+    row.addEventListener('click', function() { modalData = device; showDeviceInfo(); });
     row.style.cursor = 'pointer';
 
     for (var i = 0; i < 6; i++) cell[i] = row.insertCell();
@@ -96,13 +126,15 @@ function deviceTableAppend(device)
     cell[5].innerHTML = lastSeen;
 }
 
-function deviceTableClear()
+function clearDeviceTable()
 {
     document.querySelector('#deviceTable tbody').innerHTML = '<tr><td colspan="6" align="center"><div class="loader"></div></td></tr>';
     devicesLoaded = false;
 }
 
-function modalShowDeviceInfo()
+//
+
+function showDeviceInfo()
 {
     var modal = document.querySelector('#modal');
 
@@ -112,14 +144,14 @@ function modalShowDeviceInfo()
         modal.querySelector('.title').innerHTML = modalData.name ?? modalData.ieeeAddress;
         modal.querySelector('.message').innerHTML = 'last message will appear here';
         modal.querySelector('.info').innerHTML = JSON.stringify(modalData, null, 4);
-        modal.querySelector('.rename').addEventListener('click', function() { modalShowDeviceRename() });
-        modal.querySelector('.remove').addEventListener('click', function() { modalShowDeviceRemove() });
+        modal.querySelector('.rename').addEventListener('click', function() { showDeviceRename() });
+        modal.querySelector('.remove').addEventListener('click', function() { showDeviceRemove() });
         modal.querySelector('.close').addEventListener('click', function() { modal.style.display = 'none' });
         modal.style.display = 'block';
     });
 }
 
-function modalShowDeviceRename()
+function showDeviceRename()
 {
     var modal = document.querySelector('#modal');
 
@@ -129,12 +161,12 @@ function modalShowDeviceRename()
         modal.querySelector('.title').innerHTML = 'Renaming ' + (modalData.name ?? modalData.ieeeAddress);
         modal.querySelector('.input').value = modalData.name ?? modalData.ieeeAddress;
         modal.querySelector('.rename').addEventListener('click', function() { renameDevice(modalData.ieeeAddress, modal.querySelector('.input').value) });
-        modal.querySelector('.cancel').addEventListener('click', function() { modalShowDeviceInfo() });
+        modal.querySelector('.cancel').addEventListener('click', function() { showDeviceInfo() });
         modal.style.display = 'block';
     });
 }
 
-function modalShowDeviceRemove()
+function showDeviceRemove()
 {
     var modal = document.querySelector('#modal');
 
@@ -144,22 +176,55 @@ function modalShowDeviceRemove()
         modal.querySelector('.title').innerHTML = 'Remove ' + (modalData.name ?? modalData.ieeeAddress) + '?';
         modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(modalData.ieeeAddress, false); });
         modal.querySelector('.force').addEventListener('click', function() { removeDevice(modalData.ieeeAddress, true); });
-        modal.querySelector('.cancel').addEventListener('click', function() { modalShowDeviceInfo() });
-
+        modal.querySelector('.cancel').addEventListener('click', function() { showDeviceInfo() });
         modal.style.display = 'block';
     });
 }
 
+//
+
+function appendToast(message, style = 'default')
+{
+    var item = document.createElement('div');
+
+    item.innerHTML = '<div class="message">' + message + '</div>';
+    item.classList.add('item', 'fade-in', style);
+    item.addEventListener('click', function() { closeToast(this) });
+
+    setTimeout(function() { closeToast(item); }, 5000);
+    document.querySelector("#toast").appendChild(item);
+}
+
+function closeToast(item)
+{
+    var toast = document.querySelector("#toast");
+
+    if (toast.contains(item))
+    {
+        setTimeout(function() { toast.removeChild(item); }, 250);
+        item.classList.add('fade-out');
+    }
+}
+
+//
+
 function renameDevice(ieeeAddress, name)
 {
-    deviceTableClear();
-    publishCommand({action: 'setDeviceName', device: ieeeAddress, name: name});
+    clearDeviceTable();
+    mqttPublishCommand({action: 'setDeviceName', device: ieeeAddress, name: name});
     document.querySelector('#modal').style.display = 'none';
 }
 
 function removeDevice(ieeeAddress, force)
 {
-    deviceTableClear();
-    publishCommand({action: 'removeDevice', device: ieeeAddress, force: force});
+    clearDeviceTable();
+    mqttPublishCommand({action: 'removeDevice', device: ieeeAddress, force: force});
     document.querySelector('#modal').style.display = 'none';
 }
+
+//
+
+document.querySelector('#permitJoin').addEventListener('click', function()
+{
+    mqttPublishCommand({action: 'setPermitJoin', enabled: zigbee.permitJoin ? false : true});
+});

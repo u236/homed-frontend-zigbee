@@ -1,71 +1,72 @@
 html {
-	--border-loader: #eeeeee;
-	--border-light: #cccccc;
-	--border-dark: #888888;
-	--border-radius: 5px;
-	--header-height: 50px;
-	--footer-height: 40px;
-	--font-family: 'Roboto', 'Arial';
+    --border-loader: #eeeeee;
+    --border-light: #cccccc;
+    --border-dark: #888888;
+    --border-radius: 5px;
+    --box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+    --header-height: 50px;
+    --footer-height: 40px;
+    --font-family: 'Roboto', 'Arial';
 }
 
 html, body {
-	color: #444444;
-	font-family: var(--font-family);
-	font-size: 14px;
-	font-weight: 400;
-	margin: 0;
+    color: #444444;
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 400;
+    margin: 0;
 }
 
 button {
-	background-color: #eeeeee;
-	border: 1px solid var(--border-light);
-	border-radius: var(--border-radius);
-	cursor: pointer;
-	font-family: var(--font-family);
-	height: 30px;
-	padding: 0 10px;
-	text-transform: uppercase;
+    background-color: #eeeeee;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-family: var(--font-family);
+    height: 30px;
+    padding: 0 10px;
+    text-transform: uppercase;
 }
 
 button:hover {
-	background-color: #dddddd;
+    background-color: #dddddd;
 }
 
 input {
-	border: 1px solid var(--border-light);
-	border-radius: var(--border-radius);
-	box-sizing: border-box;
-	font-family: var(--font-family);
-	height: 30px;
-	width: 100%;
-	margin-bottom: 10px;
-	padding: 0 5px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+    font-family: var(--font-family);
+    height: 30px;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 0 5px;
 }
 
 table {
-	border-collapse: collapse;
-	margin-top: 10px;
-	width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    width: 100%;
 }
 
 tbody tr:hover {
-	background-color: lightyellow;
+    background-color: lightyellow;
 }
 
 th {
-	color: #888888;
-	font-size: 0.85rem;
-	font-weight: normal;
-	padding: 5px 10px;
-	text-align: left;
-	text-transform: uppercase;
-	white-space: nowrap;
+    color: #888888;
+    font-size: 0.85rem;
+    font-weight: normal;
+    padding: 5px 10px;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 td {
-	border-top: 1px solid var(--border-light);
-	padding: 10px;
-	white-space: nowrap;
+    border-top: 1px solid var(--border-light);
+    padding: 10px;
+    white-space: nowrap;
 }
 
 th:first-child, td:first-child {
@@ -77,93 +78,148 @@ th:last-child, td:last-child {
 }
 
 #modal {
-  	background-color: rgba(0, 0, 0, 0.25);
-  	display: none;
-  	height: 100%;
-  	width: 100%;
-  	left: 0;
-  	top: 0;
-  	overflow: auto;
-  	position: fixed;
-  	z-index: 1;
-}
-
-#modal h2 {
-	margin: 0;
-	margin-bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.25);
+    display: none;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    overflow: auto;
+    position: fixed;
+    z-index: 1;
 }
 
 #modal pre {
-	border: 1px solid var(--border-light);
-	border-radius: var(--border-radius);
-	margin: 0;
-	margin-bottom: 10px;
-	padding: 5px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    margin: 0;
+    margin-bottom: 10px;
+    padding: 5px;
 }
 
 #modal .data {
-	background-color: #ffffff;
-	border: 1px solid var(--border-dark);
-	border-radius: var(--border-radius);
-	margin: 25px auto;
-	padding: 15px;
-	width: 600px;
+    background-color: #ffffff;
+    border: 1px solid var(--border-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin: 25px auto;
+    padding: 15px;
+    width: 600px;
+}
+
+#modal .title {
+    font-size: 1.25rem;
+    margin: 0;
+    margin-bottom: 10px;
 }
 
 #modal .buttons {
-	text-align: right;
+    text-align: right;
+}
+
+#toast {
+    width: 300px;
+    right: 25px;
+    top: 25px;
+    position: fixed;
+    z-index: 2;
+}
+
+#toast .item {
+    background-color: #ffffff;
+    border: 1px solid var(--border-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    box-sizing: border-box;
+    cursor: pointer;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+#toast .message {
+    margin: 10px;
+}
+
+#toast .default {
+    border-left: 5px solid green;
+}
+
+#toast .warning {
+    border-left: 5px solid orange;
+}
+
+#toast .error {
+    border-left: 5px solid red;
 }
 
 #permitJoin {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 #permitJoin .enabled {
-	color: green;
+    color: green;
 }
 
 #permitJoin .disabled {
-	color: orange;
+    color: orange;
 }
 
 .container {
-	margin: 0 auto;
-	max-width: 1000px;
-	overflow: auto;
+    margin: 0 auto;
+    max-width: 1000px;
+    overflow: auto;
 }
 
 .header
 {
-	background-color: #eeeeee;
-	height: var(--header-height);
-	line-height: var(--header-height);
-	padding: 0 15px;
+    background-color: #eeeeee;
+    height: var(--header-height);
+    line-height: var(--header-height);
+    padding: 0 15px;
 }
 
 .content {
-  	min-height: calc(100vh - var(--header-height) - var(--footer-height));
-	padding: 0 15px;
+    min-height: calc(100vh - var(--header-height) - var(--footer-height));
+    padding: 0 15px;
 }
 
 .footer
 {
-	background-color: #eeeeee;
-	font-size: 0.85rem;
-	height: var(--footer-height);
-	line-height: var(--footer-height);
-	padding: 0 15px;
+    background-color: #eeeeee;
+    font-size: 0.85rem;
+    height: var(--footer-height);
+    line-height: var(--footer-height);
+    padding: 0 15px;
 }
 
 .loader {
-	border: 2px solid var(--border-loader);
-	border-radius: 50%;
-	border-top: 2px solid var(--border-dark);
-	width: 20px;
-	height: 20px;
-	animation: spin 1s linear infinite;
+    border: 2px solid var(--border-loader);
+    border-radius: 50%;
+    border-top: 2px solid var(--border-dark);
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+.fade-in {
+  animation: fadeIn linear 0.25s;
+}
+ 
+.fade-out {
+  animation: fadeOut linear 0.25s;
 }
 
 @keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    0%   { max-height: 0px; opacity: 0; }
+    100% { max-height: 100px; opacity: 1; }
+}
+ 
+@keyframes fadeOut {
+    0%   { max-height: 100px; opacity: 1; }
+    100% { max-height: 0; opacity: 0; }
 }
