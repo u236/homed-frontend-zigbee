@@ -110,7 +110,9 @@ function appendDeviceTable(device)
     if (device.hasOwnProperty('lastSeen'))
     {
         var date = new Date(device.lastSeen * 1000);
-        lastSeen = ('0' + date.getDay()).slice(-2) + '.' + ('0' + date.getMonth()).slice(-2) + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+        lastSeen = ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+
+
     }
 
     row.addEventListener('click', function() { modalData = device; showDeviceInfo(); });
