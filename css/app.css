@@ -123,7 +123,7 @@ th:last-child, td:last-child {
 #modal pre {
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
-    font-size: 10px;
+    font-size: 0.95rem;
     margin: 0;
     margin-bottom: 10px;
     padding: 5px;

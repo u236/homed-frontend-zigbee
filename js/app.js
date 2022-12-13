@@ -4,27 +4,26 @@ window.onload = function()
 {
     modal = document.querySelector('#modal');
 
-    window.addEventListener('mousedown', function() { if (event.target == modal) modal.style.display = 'none'; });
-    document.querySelector('#showSettings').addEventListener('click', function() { showSettings(); });
-
     try
     {
         settings = JSON.parse(getCookie('settings'));
-        options = {useSSL: settings.useSSL, userName: settings.userName, password: settings.password, onSuccess: onSuccess, onFailure: onFailure};
-        mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), Math.random().toString(36).substring(2, 10));
-
-        mqtt.onConnectionLost = onConnectionLost;
-        mqtt.onMessageArrived = onMessageArrived;
-        mqtt.connect(options);
-
-        document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
-        document.querySelector('#permitJoin').addEventListener('click', function() { publishCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
     }
     catch (exception)
-    {
-        settings = {};
-        showSettings();
+    { 
+        settings = {host: location.hostname, port: '9001', userName: '', password: '', prefix: 'homed', useSSL: false, darkTheme: false};
     }
+
+    options = {onSuccess: onSuccess, onFailure: onFailure, userName: settings.userName, password: settings.password, useSSL: settings.useSSL};
+    mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), Math.random().toString(36).substring(2, 10));
+
+    mqtt.onConnectionLost = onConnectionLost;
+    mqtt.onMessageArrived = onMessageArrived;
+    mqtt.connect(options);
+
+    window.addEventListener('mousedown', function() { if (event.target == modal) modal.style.display = 'none'; });
+    document.querySelector('#showSettings').addEventListener('click', function() { showSettings(); });
+    document.querySelector('#permitJoin').addEventListener('click', function() { publishCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
+    document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
 };
 
 function getCookie(name)
