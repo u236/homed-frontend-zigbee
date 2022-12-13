@@ -32,7 +32,7 @@ button:hover {
     background-color: #dddddd;
 }
 
-input {
+input[type="text"], input[type="password"]  {
     border: 1px solid var(--border-light);
     border-radius: var(--border-radius);
     box-sizing: border-box;
@@ -41,6 +41,14 @@ input {
     width: 100%;
     margin-bottom: 10px;
     padding: 0 5px;
+}
+
+label {
+    align-items: center;
+    color: #666666;    
+    display: flex;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
 }
 
 table {
@@ -55,7 +63,7 @@ tbody tr:hover {
 
 th {
     color: #888888;
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
     font-weight: normal;
     padding: 5px 10px;
     text-align: left;
@@ -70,11 +78,11 @@ td {
 }
 
 th:first-child, td:first-child {
-    padding-left: 0;
+    padding-left: 5px;
 }
 
 th:last-child, td:last-child {
-    padding-right: 0;
+    padding-right: 5px;
 }
 
 #modal {
@@ -92,6 +100,7 @@ th:last-child, td:last-child {
 #modal pre {
     border: 1px solid var(--border-light);
     border-radius: var(--border-radius);
+    font-size: 10px;
     margin: 0;
     margin-bottom: 10px;
     padding: 5px;
@@ -152,8 +161,19 @@ th:last-child, td:last-child {
     border-left: 5px solid red;
 }
 
-#permitJoin {
+#showSettings {
     cursor: pointer;
+    margin: 0 5px;
+}
+
+#permitJoin {
+    float: right;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+#version {
+    margin: 0 5px;
 }
 
 #permitJoin .enabled {
@@ -162,6 +182,10 @@ th:last-child, td:last-child {
 
 #permitJoin .disabled {
     color: orange;
+}
+
+.alignRight {
+    text-align: right;
 }
 
 .container {
@@ -173,6 +197,8 @@ th:last-child, td:last-child {
 .header
 {
     background-color: #eeeeee;
+    color: #444444;
+    font-size: 0.95rem;
     height: var(--header-height);
     line-height: var(--header-height);
     padding: 0 15px;
@@ -186,7 +212,8 @@ th:last-child, td:last-child {
 .footer
 {
     background-color: #eeeeee;
-    font-size: 0.85rem;
+    color: #666666;
+    font-size: 0.8125rem;
     height: var(--footer-height);
     line-height: var(--footer-height);
     padding: 0 15px;

@@ -1,41 +1,80 @@
-var mqtt = new Paho.MQTT.Client(location.hostname, 9001, Math.random().toString(36).substring(2, 10));
+var settings = {}, options, mqtt, zigbeeData, deviceData, devicesLoaded = false, modal;
 
-var options =
+window.onload = function()
 {
-    useSSL: false,
-    userName: '',
-    password: '',
-    onSuccess: mqttOnSuccess,
-    onFailure: mqttOnFailure
+    modal = document.querySelector('#modal');
+
+    window.addEventListener('mousedown', function() { if (event.target == modal) modal.style.display = 'none'; });
+    document.querySelector('#showSettings').addEventListener('click', function() { showSettings(); });
+
+    try
+    {
+        settings = JSON.parse(getCookie('settings'));
+        options = {useSSL: settings.useSSL, userName: settings.userName, password: settings.password, onSuccess: onSuccess, onFailure: onFailure};
+        mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), Math.random().toString(36).substring(2, 10));
+
+        mqtt.onConnectionLost = onConnectionLost;
+        mqtt.onMessageArrived = onMessageArrived;
+        mqtt.connect(options);
+
+        document.querySelector('#permitJoin').addEventListener('click', function() { publishCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
+    }
+    catch (exception)
+    {
+        showSettings();
+    }
 };
 
-var prefix = 'homed';
-var devicesLoaded = false;
-var zigbee, modalData;
+function getCookie(name)
+{
+    var cookie = {};
+    document.cookie.split(';').forEach(function(item) { var data = item.split('='); cookie[data[0].trim()] = data[1]; })
+    return cookie[name];
+}
+
+function formData(form)
+{
+    var data = {};
+    Array.from(form).forEach((input) => { data[input.name] =  input.type == 'checkbox' ? input.checked : input.value; });
+    return data;
+}
 
 //
 
-mqtt.connect(options);
+function onSuccess()
+{
+    console.log('MQTT connected');
+    mqtt.subscribe(settings.prefix + '/fd/zigbee/#');
+    mqtt.subscribe(settings.prefix + '/event/zigbee');
+    mqtt.subscribe(settings.prefix + '/status/zigbee');
+}
 
-mqtt.onConnectionLost = function (response)
+function onFailure()
+{
+    console.log('MQTT connection failed');
+    setTimeout(mqtt.connect(options), 1000);
+}
+
+function onConnectionLost(response)
 {
     console.log('MQTT connection lost: ' + response.errorMessage);
     setTimeout(mqtt.connect(options), 1000);
 };
 
-mqtt.onMessageArrived = function (message)
+
+function onMessageArrived(message)
 {
-    if (message.destinationName.startsWith(prefix + '/fd/zigbee/'))
+    if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))
     {
         var list = message.destinationName.split('/');
 
-        if (modalData && ((modalData.hasOwnProperty('name') && modalData.name == list[3]) || (modalData.hasOwnProperty('ieeeAddress') && modalData.ieeeAddress == list[3])))
+        if (deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[3]) || (deviceData.hasOwnProperty('ieeeAddress') && deviceData.ieeeAddress == list[3])))
         {
             var payload = JSON.parse(message.payloadString);
             document.querySelector('#modal .message').innerHTML = JSON.stringify(payload, null, 4);
         }
     }
-    else if (message.destinationName == prefix + '/event/zigbee')
+    else if (message.destinationName == settings.prefix + '/event/zigbee')
     {
         var payload = JSON.parse(message.payloadString);
         var device = 'Device <b>' + payload.device + '</b> ';
@@ -65,38 +104,25 @@ mqtt.onMessageArrived = function (message)
         }
        
     }
-    else if (message.destinationName == prefix + '/status/zigbee')
+    else if (message.destinationName == settings.prefix + '/status/zigbee')
     {
-        zigbee = JSON.parse(message.payloadString);
-        document.querySelector('#permitJoin').innerHTML = 'PERMIT JOIN ' + (zigbee.permitJoin ? '<span class="enabled">ENABLED</span>' : '<span class="disabled">DISABLED</span>');
+        zigbeeData = JSON.parse(message.payloadString);
+        document.querySelector('#permitJoin').innerHTML = 'PERMIT JOIN ' + (zigbeeData.permitJoin ? '<span class="enabled">ENABLED</span>' : '<span class="disabled">DISABLED</span>');
+        document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? '?';
 
         if (!devicesLoaded)
         {
             document.querySelector('#deviceTable tbody').innerHTML = '';
-            zigbee.devices.forEach(device => { if (!device.hasOwnProperty('removed')) appendDeviceTable(device) });
+            zigbeeData.devices.forEach(device => { if (!device.hasOwnProperty('removed') && device.logicalType) appendDeviceTable(device); });
             devicesLoaded = true;
         }
     }
 }
 
-function mqttOnSuccess()
-{
-    console.log('MQTT connected');
-    mqtt.subscribe(prefix + '/fd/zigbee/#');
-    mqtt.subscribe(prefix + '/event/zigbee');
-    mqtt.subscribe(prefix + '/status/zigbee');
-}
-
-function mqttOnFailure()
-{
-    console.log('MQTT connection failed');
-    setTimeout(mqtt.connect(options), 1000);
-}
-
-function mqttPublishCommand(data)
+function publishCommand(data)
 {
     var message = new Paho.MQTT.Message(JSON.stringify(data));
-    message.destinationName = prefix + '/command/zigbee';
+    message.destinationName = settings.prefix + '/command/zigbee';
     mqtt.send(message);
 }
 
@@ -109,76 +135,98 @@ function appendDeviceTable(device)
 
     if (device.hasOwnProperty('lastSeen'))
     {
-        var date = new Date(device.lastSeen * 1000);
-        lastSeen = ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+       var interval = Date.now() / 1000 - device.lastSeen;
 
-
+            if (interval > 86400)
+                lastSeen = Math.round(interval / 86400) + ' days';
+            else if (interval > 3600)
+                lastSeen = Math.round(interval / 3600) + ' hours';
+            else if (interval > 60)
+                lastSeen = Math.round(interval / 60) + ' minutes';
+            else
+                lastSeen = Math.round(interval) + ' seconds';
     }
 
-    row.addEventListener('click', function() { modalData = device; showDeviceInfo(); });
+    row.addEventListener('click', function() { deviceData = device; showDeviceInfo(); });
     row.style.cursor = 'pointer';
 
-    for (var i = 0; i < 6; i++) cell[i] = row.insertCell();
+    for (var i = 0; i < 7; i++)
+        cell[i] = row.insertCell();
 
     cell[0].innerHTML = device.name ?? device.ieeeAddress;
     cell[1].innerHTML = device.manufacturerName ?? '-';
     cell[2].innerHTML = device.modelName ?? '-';
     cell[3].innerHTML = logicalType[device.logicalType];
-    cell[4].innerHTML = '0x' + ('0000' + device.networkAddress.toString(16).toUpperCase()).slice(-4);
-    cell[5].innerHTML = lastSeen;
+    cell[4].innerHTML = device.linkQuality ?? '-';
+    cell[5].innerHTML = device.supported ?? '-';
+    cell[6].innerHTML = lastSeen;
+
+    cell[6].classList.add('alignRight');
 }
 
 function clearDeviceTable()
 {
-    document.querySelector('#deviceTable tbody').innerHTML = '<tr><td colspan="6" align="center"><div class="loader"></div></td></tr>';
+    document.querySelector('#deviceTable tbody').innerHTML = '<tr><td colspan="7" align="center"><div class="loader"></div></td></tr>';
     devicesLoaded = false;
 }
 
 //
 
+function showSettings()
+{
+    fetch('settings.html').then(response => response.text()).then(html =>
+    {
+        modal.querySelector('.data').innerHTML = html;
+
+        modal.querySelector('input[name="host"]').value = settings.host ?? location.hostname;
+        modal.querySelector('input[name="port"]').value = settings.port ?? '9001';
+        modal.querySelector('input[name="userName"]').value = settings.userName ?? '';
+        modal.querySelector('input[name="password"]').value = settings.password ?? '';
+        modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
+        modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
+        modal.querySelector('.save').addEventListener('click', function() { document.cookie = 'settings=' + JSON.stringify(formData(modal.querySelectorAll('form')[0])); location.reload(); });
+        modal.querySelector('.close').addEventListener('click', function() { modal.style.display = 'none'; });
+        modal.style.display = 'block';
+    });
+}
+
 function showDeviceInfo()
 {
-    var modal = document.querySelector('#modal');
-
     fetch('deviceInfo.html').then(response => response.text()).then(html =>
     {
         modal.querySelector('.data').innerHTML = html;
-        modal.querySelector('.title').innerHTML = modalData.name ?? modalData.ieeeAddress;
+        modal.querySelector('.title').innerHTML = deviceData.name ?? deviceData.ieeeAddress;
         modal.querySelector('.message').innerHTML = 'last message will appear here';
-        modal.querySelector('.info').innerHTML = JSON.stringify(modalData, null, 4);
-        modal.querySelector('.rename').addEventListener('click', function() { showDeviceRename() });
-        modal.querySelector('.remove').addEventListener('click', function() { showDeviceRemove() });
-        modal.querySelector('.close').addEventListener('click', function() { modal.style.display = 'none' });
+        modal.querySelector('.info').innerHTML = JSON.stringify(deviceData, null, 4);
+        modal.querySelector('.rename').addEventListener('click', function() { showDeviceRename(); });
+        modal.querySelector('.remove').addEventListener('click', function() { showDeviceRemove(); });
+        modal.querySelector('.close').addEventListener('click', function() { modal.style.display = 'none'; });
         modal.style.display = 'block';
     });
 }
 
 function showDeviceRename()
 {
-    var modal = document.querySelector('#modal');
-
     fetch('deviceRename.html').then(response => response.text()).then(html =>
     {
         modal.querySelector('.data').innerHTML = html;
-        modal.querySelector('.title').innerHTML = 'Renaming ' + (modalData.name ?? modalData.ieeeAddress);
-        modal.querySelector('.input').value = modalData.name ?? modalData.ieeeAddress;
-        modal.querySelector('.rename').addEventListener('click', function() { renameDevice(modalData.ieeeAddress, modal.querySelector('.input').value) });
-        modal.querySelector('.cancel').addEventListener('click', function() { showDeviceInfo() });
+        modal.querySelector('.title').innerHTML = 'Renaming ' + (deviceData.name ?? deviceData.ieeeAddress);
+        modal.querySelector('.input').value = deviceData.name ?? deviceData.ieeeAddress;
+        modal.querySelector('.rename').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('.input').value); });
+        modal.querySelector('.cancel').addEventListener('click', function() { showDeviceInfo(); });
         modal.style.display = 'block';
     });
 }
 
 function showDeviceRemove()
 {
-    var modal = document.querySelector('#modal');
-
     fetch('deviceRemove.html').then(response => response.text()).then(html =>
     {
         modal.querySelector('.data').innerHTML = html;
-        modal.querySelector('.title').innerHTML = 'Remove ' + (modalData.name ?? modalData.ieeeAddress) + '?';
-        modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(modalData.ieeeAddress, false); });
-        modal.querySelector('.force').addEventListener('click', function() { removeDevice(modalData.ieeeAddress, true); });
-        modal.querySelector('.cancel').addEventListener('click', function() { showDeviceInfo() });
+        modal.querySelector('.title').innerHTML = 'Remove ' + (deviceData.name ?? deviceData.ieeeAddress) + '?';
+        modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, false); });
+        modal.querySelector('.force').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, true); });
+        modal.querySelector('.cancel').addEventListener('click', function() { showDeviceInfo(); });
         modal.style.display = 'block';
     });
 }
@@ -191,15 +239,15 @@ function appendToast(message, style = 'default')
 
     item.innerHTML = '<div class="message">' + message + '</div>';
     item.classList.add('item', 'fade-in', style);
-    item.addEventListener('click', function() { closeToast(this) });
+    item.addEventListener('click', function() { closeToast(this); });
 
     setTimeout(function() { closeToast(item); }, 5000);
-    document.querySelector("#toast").appendChild(item);
+    document.querySelector('#toast').appendChild(item);
 }
 
 function closeToast(item)
 {
-    var toast = document.querySelector("#toast");
+    var toast = document.querySelector('#toast');
 
     if (toast.contains(item))
     {
@@ -213,20 +261,13 @@ function closeToast(item)
 function renameDevice(ieeeAddress, name)
 {
     clearDeviceTable();
-    mqttPublishCommand({action: 'setDeviceName', device: ieeeAddress, name: name});
+    publishCommand({action: 'setDeviceName', device: ieeeAddress, name: name});
     document.querySelector('#modal').style.display = 'none';
 }
 
 function removeDevice(ieeeAddress, force)
 {
     clearDeviceTable();
-    mqttPublishCommand({action: 'removeDevice', device: ieeeAddress, force: force});
+    publishCommand({action: 'removeDevice', device: ieeeAddress, force: force});
     document.querySelector('#modal').style.display = 'none';
 }
-
-//
-
-document.querySelector('#permitJoin').addEventListener('click', function()
-{
-    mqttPublishCommand({action: 'setPermitJoin', enabled: zigbee.permitJoin ? false : true});
-});
