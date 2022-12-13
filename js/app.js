@@ -136,7 +136,14 @@ function appendDeviceTable(device)
     row.style.cursor = 'pointer';
 
     for (var i = 0; i < 7; i++)
+    {
         cell[i] = row.insertCell();
+
+        if (i < 4)
+            continue;
+
+        cell[i].classList.add('alignRight');
+    }
 
     cell[0].innerHTML = device.name ?? device.ieeeAddress;
     cell[1].innerHTML = device.manufacturerName ?? '-';
@@ -145,8 +152,6 @@ function appendDeviceTable(device)
     cell[4].innerHTML = device.linkQuality ?? '-';
     cell[5].innerHTML = device.supported ?? '-';
     cell[6].innerHTML = lastSeen;
-
-    cell[6].classList.add('alignRight');
 }
 
 function clearDeviceTable()
