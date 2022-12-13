@@ -1,26 +1,68 @@
-html {
-    --border-loader: #eeeeee;
-    --border-light: #cccccc;
-    --border-dark: #888888;
-    --border-radius: 5px;
-    --box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
-    --header-height: 50px;
-    --footer-height: 40px;
-    --font-family: 'Roboto', 'Arial';
+:root, html[theme="light"] {
+    --background-main:  #ffffff;
+    --background-shade: #eeeeee;
+    --background-hover: #dddddd;
+    --border-loader:    #888888;
+    --border-main:      #cccccc;
+    --border-shade:     #888888;
+    --color-main:       #444444;
+    --color-shade:      #888888;
+    --border-radius:    5px;
+    --box-shadow:       0 5px 10px rgba(0, 0, 0, 0.25);
+    --header-height:    50px;
+    --footer-height:    40px;
+    --font-family:      'Roboto', 'Arial';
+}
+
+html[theme="dark"] {
+    --background-main:  #111111;
+    --background-shade: #222222;
+    --background-hover: #333333;
+    --border-loader:    #888888;
+    --border-main:      #444444;
+    --border-shade:     #222222;
+    --color-main:       #cccccc;
+    --color-shade:      #888888;
 }
 
 html, body {
-    color: #444444;
+    background-color: var(--background-main);
+    color: var(--color-main);
     font-family: var(--font-family);
     font-size: 14px;
     font-weight: 400;
     margin: 0;
 }
 
-button {
-    background-color: #eeeeee;
-    border: 1px solid var(--border-light);
+label {
+    align-items: center;
+    display: flex;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+}
+
+label:has(> input[type="checkbox"]) {
+    cursor: pointer;
+}
+
+input[type="text"], input[type="password"] {
+    background-color: var(--background-main);
+    border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
+    box-sizing: border-box;
+    color: var(--color-main);
+    font-family: var(--font-family);
+    height: 30px;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 0 5px;
+}
+
+button {
+    background-color: var(--background-shade);
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    color: var(--color-main);
     cursor: pointer;
     font-family: var(--font-family);
     height: 30px;
@@ -29,26 +71,7 @@ button {
 }
 
 button:hover {
-    background-color: #dddddd;
-}
-
-input[type="text"], input[type="password"]  {
-    border: 1px solid var(--border-light);
-    border-radius: var(--border-radius);
-    box-sizing: border-box;
-    font-family: var(--font-family);
-    height: 30px;
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 0 5px;
-}
-
-label {
-    align-items: center;
-    color: #666666;    
-    display: flex;
-    font-size: 0.8125rem;
-    text-transform: uppercase;
+    background-color: var(--background-hover);
 }
 
 table {
@@ -58,11 +81,11 @@ table {
 }
 
 tbody tr:hover {
-    background-color: lightyellow;
+    background-color: var(--background-hover);
 }
 
 th {
-    color: #888888;
+    color: var(--color-shade);
     font-size: 0.8125rem;
     font-weight: normal;
     padding: 5px 10px;
@@ -72,7 +95,7 @@ th {
 }
 
 td {
-    border-top: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-main);
     padding: 10px;
     white-space: nowrap;
 }
@@ -86,7 +109,7 @@ th:last-child, td:last-child {
 }
 
 #modal {
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: rgba(0, 0, 0, 0.75);
     display: none;
     height: 100%;
     width: 100%;
@@ -98,7 +121,7 @@ th:last-child, td:last-child {
 }
 
 #modal pre {
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
     font-size: 10px;
     margin: 0;
@@ -107,8 +130,8 @@ th:last-child, td:last-child {
 }
 
 #modal .data {
-    background-color: #ffffff;
-    border: 1px solid var(--border-dark);
+    background-color: var(--background-main);
+    border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     margin: 25px auto;
@@ -135,8 +158,8 @@ th:last-child, td:last-child {
 }
 
 #toast .item {
-    background-color: #ffffff;
-    border: 1px solid var(--border-dark);
+    background-color: var(--background-main);
+    border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     box-sizing: border-box;
@@ -196,8 +219,7 @@ th:last-child, td:last-child {
 
 .header
 {
-    background-color: #eeeeee;
-    color: #444444;
+    background-color: var(--background-shade);
     font-size: 0.95rem;
     height: var(--header-height);
     line-height: var(--header-height);
@@ -211,8 +233,8 @@ th:last-child, td:last-child {
 
 .footer
 {
-    background-color: #eeeeee;
-    color: #666666;
+    background-color: var(--background-shade);
+    color: var(--color-shade);
     font-size: 0.8125rem;
     height: var(--footer-height);
     line-height: var(--footer-height);
@@ -220,9 +242,9 @@ th:last-child, td:last-child {
 }
 
 .loader {
-    border: 2px solid var(--border-loader);
+    border: 2px solid var(--border-main);
     border-radius: 50%;
-    border-top: 2px solid var(--border-dark);
+    border-top: 2px solid var(--border-loader);
     width: 20px;
     height: 20px;
     animation: spin 1s linear infinite;

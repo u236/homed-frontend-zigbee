@@ -1,4 +1,4 @@
-var settings = {}, options, mqtt, zigbeeData, deviceData, devicesLoaded = false, modal;
+var modal, settings, options, mqtt, zigbeeData, deviceData, devicesLoaded = false;
 
 window.onload = function()
 {
@@ -17,10 +17,12 @@ window.onload = function()
         mqtt.onMessageArrived = onMessageArrived;
         mqtt.connect(options);
 
+        document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
         document.querySelector('#permitJoin').addEventListener('click', function() { publishCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
     }
     catch (exception)
     {
+        settings = {};
         showSettings();
     }
 };
@@ -184,6 +186,7 @@ function showSettings()
         modal.querySelector('input[name="password"]').value = settings.password ?? '';
         modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
         modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
+        modal.querySelector('input[name="darkTheme"]').checked = settings.darkTheme ?? false;
         modal.querySelector('.save').addEventListener('click', function() { document.cookie = 'settings=' + JSON.stringify(formData(modal.querySelectorAll('form')[0])); location.reload(); });
         modal.querySelector('.close').addEventListener('click', function() { modal.style.display = 'none'; });
         modal.style.display = 'block';
