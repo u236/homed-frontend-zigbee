@@ -3,16 +3,7 @@ var modal, settings, options, mqtt, zigbeeData, deviceData, devicesLoaded = fals
 window.onload = function()
 {
     modal = document.querySelector('#modal');
-
-    try
-    {
-        settings = JSON.parse(getCookie('settings'));
-    }
-    catch (exception)
-    { 
-        settings = {host: location.hostname, port: '9001', userName: '', password: '', prefix: 'homed', useSSL: false, darkTheme: false};
-    }
-
+    settings = JSON.parse(localStorage.getItem('settings')) ?? {host: location.hostname, port: '9001', userName: '', password: '', prefix: 'homed', useSSL: false, darkTheme: false};
     options = {onSuccess: onSuccess, onFailure: onFailure, userName: settings.userName, password: settings.password, useSSL: settings.useSSL};
     mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), Math.random().toString(36).substring(2, 10));
 
@@ -25,13 +16,6 @@ window.onload = function()
     document.querySelector('#permitJoin').addEventListener('click', function() { publishCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
     document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
 };
-
-function getCookie(name)
-{
-    var cookie = {};
-    document.cookie.split(';').forEach(function(item) { var data = item.split('='); cookie[data[0].trim()] = data[1]; })
-    return cookie[name];
-}
 
 function formData(form)
 {
@@ -186,7 +170,7 @@ function showSettings()
         modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
         modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
         modal.querySelector('input[name="darkTheme"]').checked = settings.darkTheme ?? false;
-        modal.querySelector('.save').addEventListener('click', function() { document.cookie = 'settings=' + JSON.stringify(formData(modal.querySelectorAll('form')[0])); location.reload(); });
+        modal.querySelector('.save').addEventListener('click', function() { localStorage.setItem('settings', JSON.stringify(formData(modal.querySelectorAll('form')[0]))); location.reload(); });
         modal.querySelector('.close').addEventListener('click', function() { modal.style.display = 'none'; });
         modal.style.display = 'block';
     });
