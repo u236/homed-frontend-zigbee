@@ -2,6 +2,7 @@
     --background-main:  #ffffff;
     --background-shade: #eeeeee;
     --background-hover: #dddddd;
+    --background-error: #ffdddd;
     --border-loader:    #888888;
     --border-main:      #cccccc;
     --border-shade:     #888888;
@@ -18,6 +19,7 @@ html[theme="dark"] {
     --background-main:  #111111;
     --background-shade: #222222;
     --background-hover: #333333;
+    --background-error: #330000;
     --border-loader:    #888888;
     --border-main:      #444444;
     --border-shade:     #222222;
@@ -207,8 +209,12 @@ th:last-child, td:last-child {
     color: orange;
 }
 
-.alignRight {
+.right {
     text-align: right;
+}
+
+.unavailable {
+    background-color: var(--background-error);
 }
 
 .container {

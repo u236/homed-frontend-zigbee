@@ -29,7 +29,6 @@ function formData(form)
 function onSuccess()
 {
     console.log('MQTT connected');
-    mqtt.subscribe(settings.prefix + '/fd/zigbee/#');
     mqtt.subscribe(settings.prefix + '/event/zigbee');
     mqtt.subscribe(settings.prefix + '/status/zigbee');
 }
@@ -49,20 +48,9 @@ function onConnectionLost(response)
 
 function onMessageArrived(message)
 {
-    if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))
+    if (message.destinationName == settings.prefix + '/event/zigbee')
     {
-        var list = message.destinationName.split('/');
-
-        if (deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[3]) || (deviceData.hasOwnProperty('ieeeAddress') && deviceData.ieeeAddress == list[3])))
-        {
-            var payload = JSON.parse(message.payloadString);
-            document.querySelector('#modal .message').innerHTML = JSON.stringify(payload, null, 4);
-        }
-    }
-    else if (message.destinationName == settings.prefix + '/event/zigbee')
-    {
-        var payload = JSON.parse(message.payloadString);
-        var device = 'Device <b>' + payload.device + '</b> ';
+        var payload = JSON.parse(message.payloadString), device = 'Device <b>' + payload.device + '</b> ';
 
         switch (payload.event)
         {
@@ -99,7 +87,43 @@ function onMessageArrived(message)
         {
             document.querySelector('#deviceTable tbody').innerHTML = '';
             zigbeeData.devices.forEach(device => { if (!device.hasOwnProperty('removed') && device.logicalType) appendDeviceTable(device); });
+
+            mqtt.subscribe(settings.prefix + '/device/zigbee/#');
+            mqtt.subscribe(settings.prefix + '/fd/zigbee/#');
+
             devicesLoaded = true;
+        }
+    }
+    else if (message.destinationName.startsWith(settings.prefix + '/device/zigbee/'))
+    {
+        var list = message.destinationName.split('/'), payload = JSON.parse(message.payloadString), row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
+
+        if (row)
+        {
+            if (payload.status == 'online')
+            {
+                row.classList.remove('unavailable');
+                row.querySelector('.availability').innerHTML = 'true';
+            }
+            else
+            {
+                row.classList.add('unavailable');
+                row.querySelector('.availability').innerHTML = 'false';
+            }
+        }
+    }
+    else if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))
+    {
+        var list = message.destinationName.split('/'), payload = JSON.parse(message.payloadString), row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
+
+        if (deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[3]) || (deviceData.hasOwnProperty('ieeeAddress') && deviceData.ieeeAddress == list[3])))
+            document.querySelector('#modal .message').innerHTML = JSON.stringify(payload, null, 4);
+
+        if (row)
+        {
+            row.querySelector('.linkQuality').innerHTML = payload.linkQuality;
+            row.dataset.lastSeen = Math.round(Date.now() / 1000);
+            updateLastSeen(row);
         }
     }
 }
@@ -113,51 +137,64 @@ function publishCommand(data)
 
 //
 
+function clearDeviceTable()
+{
+    document.querySelector('#deviceTable tbody').innerHTML = '<tr><td colspan="7" align="center"><div class="loader"></div></td></tr>';
+    devicesLoaded = false;
+}
+
 function appendDeviceTable(device)
 {
-    var logicalType = ['coordinator', 'router', 'end device'], lastSeen = '-';
-    var row = document.querySelector('#deviceTable tbody').insertRow(), cell = [];
-
-    if (device.hasOwnProperty('lastSeen'))
-    {
-       var interval = Date.now() / 1000 - device.lastSeen;
-
-            if (interval > 86400)
-                lastSeen = Math.round(interval / 86400) + ' days';
-            else if (interval > 3600)
-                lastSeen = Math.round(interval / 3600) + ' hours';
-            else if (interval > 60)
-                lastSeen = Math.round(interval / 60) + ' minutes';
-            else
-                lastSeen = Math.round(interval) + ' seconds';
-    }
+    var logicalType = ['coordinator', 'router', 'end device'], row = document.querySelector('#deviceTable tbody').insertRow(), cell = [];
 
     row.addEventListener('click', function() { deviceData = device; showDeviceInfo(); });
+    row.dataset.address = device.ieeeAddress;
+    row.dataset.name = device.name ?? device.ieeeAddress;
+    row.dataset.lastSeen = device.lastSeen;
     row.style.cursor = 'pointer';
 
-    for (var i = 0; i < 7; i++)
+    for (var i = 0; i < 8; i++)
     {
         cell[i] = row.insertCell();
 
         if (i < 4)
             continue;
 
-        cell[i].classList.add('alignRight');
+        cell[i].classList.add('right');
     }
 
     cell[0].innerHTML = device.name ?? device.ieeeAddress;
     cell[1].innerHTML = device.manufacturerName ?? '-';
     cell[2].innerHTML = device.modelName ?? '-';
     cell[3].innerHTML = logicalType[device.logicalType];
-    cell[4].innerHTML = device.linkQuality ?? '-';
-    cell[5].innerHTML = device.supported ?? '-';
-    cell[6].innerHTML = lastSeen;
+    cell[4].innerHTML = device.supported ?? '-';
+    cell[5].innerHTML = '-';
+    cell[6].innerHTML = device.linkQuality ?? '-';
+    cell[7].innerHTML = '-';
+
+    cell[5].classList.add('availability');
+    cell[6].classList.add('linkQuality');
+    cell[7].classList.add('lastSeen');
+
+    updateLastSeen(row);
 }
 
-function clearDeviceTable()
+function updateLastSeen(row)
 {
-    document.querySelector('#deviceTable tbody').innerHTML = '<tr><td colspan="7" align="center"><div class="loader"></div></td></tr>';
-    devicesLoaded = false;
+    if (row.dataset.lastSeen)
+    {
+        var cell = row.querySelector('.lastSeen'), interval = Date.now() / 1000 - row.dataset.lastSeen;
+
+        switch (true)
+        {
+            case interval >= 86400: cell.innerHTML = Math.round(interval / 86400) + ' day'; break;
+            case interval >= 3600:  cell.innerHTML = Math.round(interval / 3600) + ' hrs'; break;
+            case interval >= 60:    cell.innerHTML = Math.round(interval / 60) + ' min'; break;
+            default:                cell.innerHTML = 'now'; break;
+        }
+    }
+
+    setTimeout(updateLastSeen, 60000, row);
 }
 
 //
