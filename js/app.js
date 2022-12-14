@@ -167,7 +167,6 @@ function showSettings()
     fetch('settings.html').then(response => response.text()).then(html =>
     {
         modal.querySelector('.data').innerHTML = html;
-
         modal.querySelector('input[name="host"]').value = settings.host ?? location.hostname;
         modal.querySelector('input[name="port"]').value = settings.port ?? '9001';
         modal.querySelector('input[name="userName"]').value = settings.userName ?? '';
@@ -202,8 +201,8 @@ function showDeviceRename()
     {
         modal.querySelector('.data').innerHTML = html;
         modal.querySelector('.title').innerHTML = 'Renaming ' + (deviceData.name ?? deviceData.ieeeAddress);
-        modal.querySelector('.input').value = deviceData.name ?? deviceData.ieeeAddress;
-        modal.querySelector('.rename').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('.input').value); });
+        modal.querySelector('input[name="name"]').value = deviceData.name ?? deviceData.ieeeAddress;
+        modal.querySelector('.rename').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('input[name="name"]').value); });
         modal.querySelector('.cancel').addEventListener('click', function() { showDeviceInfo(); });
         modal.style.display = 'block';
     });
