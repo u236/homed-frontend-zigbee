@@ -1,4 +1,4 @@
-var settings, mqtt, zigbeeData, deviceData, devicesLoaded = false, logicalType = {0: 'coordinator', 1: 'router', 2: 'end device'}, powerSource = {0: 'unknown', 1: 'mains', 3: 'battery', 4: 'dc'};
+var settings, mqtt, zigbeeData, deviceData, devicesLoaded = false, logicalType = {0: 'coordinator', 1: 'router', 2: 'end device'};
 
 // startup
 
@@ -6,10 +6,10 @@ window.onload = function()
 {
     settings = JSON.parse(localStorage.getItem('settings')) ?? {host: location.hostname, port: '9001', userName: '', password: '', prefix: 'homed', useSSL: false, darkTheme: false};
     mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), Math.random().toString(36).substring(2, 10));
-    
+
     mqtt.onConnectionLost = onConnectionLost;
     mqtt.onMessageArrived = onMessageArrived;
-   
+
     window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
 
@@ -35,7 +35,7 @@ function onMessageArrived(message)
     if (message.destinationName == settings.prefix + '/status/zigbee')
     {
         zigbeeData = JSON.parse(message.payloadString);
-        document.querySelector('#permitJoin').innerHTML = 'PERMIT JOIN ' + (zigbeeData.permitJoin ? '<span class="enabled">ENABLED</span>' : '<span class="disabled">DISABLED</span>');
+        document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
         document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? '?';
 
         if (devicesLoaded)
@@ -46,13 +46,13 @@ function onMessageArrived(message)
 
                 if (!row)
                     return;
-                
+
                 updateLastSeen(row, device.lastSeen);
             });
         }
         else
         {
-            showPage('deviceList'); 
+            showPage('deviceList');
             devicesLoaded = true;
         }
     }
@@ -69,6 +69,14 @@ function onMessageArrived(message)
 
             case 'deviceLeft':
                 showToast(html + 'left network', 'warning');
+                break;
+
+            case 'deviceNameDuplicate':
+                showToast(html + 'rename failed, name already in use', 'error');
+                break;
+
+            case 'deviceUpdated':
+                showToast(html + 'successfully updated');
                 break;
 
             case 'interviewError':
@@ -93,16 +101,16 @@ function onMessageArrived(message)
 
         if (!row)
             return;
-            
+
         if (payload.status == 'online')
         {
             row.classList.remove('unavailable');
-            row.querySelector('.availability').innerHTML = 'true';
+            row.querySelector('.availability').innerHTML = '<i class="icon-true success"></i>';
         }
         else
         {
             row.classList.add('unavailable');
-            row.querySelector('.availability').innerHTML = 'false';
+            row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>';
         }
     }
     else if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))
@@ -110,7 +118,7 @@ function onMessageArrived(message)
         var list = message.destinationName.split('/'), payload = JSON.parse(message.payloadString);
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
         var message = document.querySelector('#deviceInfo .message');
-        
+
         if (row)
             row.querySelector('.linkQuality').innerHTML = payload.linkQuality;
 
@@ -160,12 +168,13 @@ function showPage(name)
     switch (name)
     {
         case 'deviceInfo':
-            
-            fetch('html/deviceInfo.html').then(response => response.text()).then(html =>
+
+            fetch('html/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 container.innerHTML = html;
                 container.querySelector('.rename').addEventListener('click', function() { showModal('deviceRename'); });
                 container.querySelector('.remove').addEventListener('click', function() { showModal('deviceRemove'); });
+                container.querySelector('.data').addEventListener('click', function() { showModal('deviceData'); });
 
                 for (var key in deviceData)
                 {
@@ -183,49 +192,43 @@ function showPage(name)
                     container.querySelector('.message').style.display = 'none';
                 }
             });
-            
+
             break;
 
         default:
-        
-            fetch('html/deviceList.html').then(response => response.text()).then(html =>
+
+            fetch('html/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 container.innerHTML = html;
-                
+
                 zigbeeData.devices.forEach(device =>
                 {
                     if (!device.hasOwnProperty('removed'))
                     {
-                        var row = container.querySelector('#deviceList tbody').insertRow();
-                        var cell = [];
+                        var row = container.querySelector('#deviceList tbody').insertRow(device.logicalType ? -1 : 0);
 
                         row.addEventListener('click', function() { deviceData = device; showPage('deviceInfo'); });
                         row.dataset.address = device.ieeeAddress;
                         row.dataset.name = device.name ?? device.ieeeAddress;
 
-                        for (var i = 0; i < 8; i++)
+                        for (var i = 0; i < 9; i++)
                         {
-                            cell[i] = row.insertCell();
-                    
-                            if (i < 4)
-                                continue;
-                    
-                            cell[i].classList.add('right');
+                            var cell = row.insertCell();
+
+                            switch (i)
+                            {
+                                case 0: cell.innerHTML = device.name ?? device.ieeeAddress; break;
+                                case 1: cell.innerHTML = device.manufacturerName ?? '-'; break;
+                                case 2: cell.innerHTML = device.modelName ?? '-'; break;
+                                case 3: cell.innerHTML = logicalType[device.logicalType]; break;
+                                case 4: cell.innerHTML = parseValue('powerSource', device.powerSource); cell.classList.add('center'); break;
+                                case 5: cell.innerHTML = parseValue('supported', device.supported); cell.classList.add('center'); break;
+                                case 6: cell.innerHTML = '-'; cell.classList.add('availability', 'center'); break;
+                                case 7: cell.innerHTML = device.linkQuality ?? '-'; cell.classList.add('linkQuality', 'right'); break;
+                                case 8: cell.innerHTML = '-'; cell.classList.add('lastSeen', 'right'); break;
+                            }
                         }
-                    
-                        cell[0].innerHTML = device.name ?? device.ieeeAddress;
-                        cell[1].innerHTML = device.manufacturerName ?? '-';
-                        cell[2].innerHTML = device.modelName ?? '-';
-                        cell[3].innerHTML = logicalType[device.logicalType];
-                        cell[4].innerHTML = device.supported ?? '-';
-                        cell[5].innerHTML = '-';
-                        cell[6].innerHTML = device.linkQuality ?? '-';
-                        cell[7].innerHTML = '-';
-                    
-                        cell[5].classList.add('availability');
-                        cell[6].classList.add('linkQuality');
-                        cell[7].classList.add('lastSeen');
-                    
+
                         updateLastSeen(row, device.lastSeen);
                     }
                 });
@@ -236,22 +239,22 @@ function showPage(name)
 
             break;
     }
-    
+
     location.hash = name;
 }
 
-function clearPage(error = null)
+function clearPage(warning = null)
 {
     var container = document.querySelector('.content .container');
 
-    fetch('html/loader.html').then(response => response.text()).then(html =>
+    fetch('html/loader.html?' + Date.now()).then(response => response.text()).then(html =>
     {
         container.innerHTML = html;
-        
-        if (error)
+
+        if (warning)
         {
-            container.querySelector('.error').innerHTML = error;
-            console.log(error);
+            container.querySelector('.warning').innerHTML = warning;
+            console.log(warning);
         }
 
         closeModal();
@@ -268,8 +271,8 @@ function showModal(name)
     switch (name)
     {
         case 'settings':
-            
-            fetch('html/settings.html').then(response => response.text()).then(html =>
+
+            fetch('html/settings.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
                 modal.querySelector('input[name="host"]').value = settings.host ?? location.hostname;
@@ -282,14 +285,14 @@ function showModal(name)
                 modal.querySelector('.save').addEventListener('click', function() { localStorage.setItem('settings', JSON.stringify(formData(modal.querySelectorAll('form')[0]))); location.reload(); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
                 modal.style.display = 'block';
-               
+
             });
-            
+
             break;
 
         case 'deviceRename':
-            
-            fetch('html/deviceRename.html').then(response => response.text()).then(html =>
+
+            fetch('html/deviceRename.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
                 modal.querySelector('.title').innerHTML = 'Renaming ' + (deviceData.name ?? deviceData.ieeeAddress);
@@ -302,13 +305,24 @@ function showModal(name)
             break;
 
         case 'deviceRemove':
-            
-            fetch('html/deviceRemove.html').then(response => response.text()).then(html =>
+
+            fetch('html/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
                 modal.querySelector('.title').innerHTML = 'Remove ' + (deviceData.name ?? deviceData.ieeeAddress) + '?';
                 modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, false); });
                 modal.querySelector('.force').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, true); });
+                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+                modal.style.display = 'block';
+            });
+
+        case 'deviceData':
+
+            fetch('html/deviceData.html?' + Date.now()).then(response => response.text()).then(html =>
+            {
+                modal.querySelector('.data').innerHTML = html;
+                modal.querySelector('.title').innerHTML = (deviceData.name ?? deviceData.ieeeAddress);
+                modal.querySelector('.json').innerHTML = JSON.stringify(deviceData, null, 4);
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
                 modal.style.display = 'block';
             });
@@ -328,7 +342,7 @@ function closeModal()
 
 // toast
 
-function showToast(message, style = 'default')
+function showToast(message, style = 'success')
 {
     var item = document.createElement('div');
 
@@ -337,7 +351,7 @@ function showToast(message, style = 'default')
     item.addEventListener('click', function() { closeToast(this); });
 
     document.querySelector('#toast').appendChild(item);
-    setTimeout(closeToast, 1000, item);
+    setTimeout(closeToast, 5000, item);
 }
 
 function closeToast(item)
@@ -379,11 +393,16 @@ function parseValue(key, value)
     switch (key)
     {
         case 'logicalType': return logicalType[value];
-        case 'powerSource': return powerSource[value];
+        case 'powerSource': return value !== undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : '-';
+
         case 'networkAddress':
         case 'manufacturerCode':
             return '0x' + ('0000' + value.toString(16).toUpperCase()).slice(-4);
-        
+
+        case 'supported':
+        case 'interviewFinished':
+            return value !== undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'warning') + '"></i>' : '-';
+
         default: return value;
     }
 }

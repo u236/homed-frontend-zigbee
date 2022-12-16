@@ -8,11 +8,14 @@
     --border-shade:     #eeeeee;
     --color-main:       #444444;
     --color-shade:      #888888;
+    --color-success:    green;
+    --color-warning:    orange;
+    --color-error:      red;
     --border-radius:    5px;
     --box-shadow:       0 5px 10px rgba(0, 0, 0, 0.25);
     --header-height:    50px;
     --footer-height:    40px;
-    --font-family:      'Roboto', 'Arial';
+    --font-family:      "DejaVu Sans", "Arial";
 }
 
 html[theme="dark"] {
@@ -34,6 +37,14 @@ html, body {
     font-size: 14px;
     font-weight: 400;
     margin: 0;
+}
+
+pre {
+    border: 1px solid var(--border-shade);
+    border-radius: var(--border-radius);
+    font-family: "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+    padding: 5px;
 }
 
 form label {
@@ -101,8 +112,24 @@ th:last-child, td:last-child {
     padding-right: 5px !important;
 }
 
-tbody tr:hover {
-    background-color: var(--background-hover);
+.shade {
+    color: var(--color-shade);
+}
+
+.success {
+    color: var(--color-success);
+}
+
+.warning {
+    color: var(--color-warning);
+}
+
+.error {
+    color: var(--color-error);
+}
+
+.center {
+    text-align: center;
 }
 
 .right {
@@ -122,7 +149,6 @@ tbody tr:hover {
 .header
 {
     background-color: var(--background-shade);
-    font-size: 0.95rem;
     height: var(--header-height);
     line-height: var(--header-height);
     padding: 0 15px;
@@ -158,15 +184,10 @@ tbody tr:hover {
     animation: spin 1s linear infinite;
 }
 
-.error {
-    color: orange;
-    text-align: center;
-}
-
 .fade-in {
   animation: fadeIn linear 0.25s;
 }
- 
+
 .fade-out {
   animation: fadeOut linear 0.25s;
 }
@@ -175,18 +196,19 @@ tbody tr:hover {
     cursor: pointer;
 }
 
+#deviceList tbody tr:hover {
+    background-color: var(--background-hover);
+}
+
 #deviceList td {
     border-top: 1px solid var(--border-shade);
+    min-width: 32px;
     padding: 10px;
     white-space: nowrap;
 }
 
 #deviceInfo pre {
-    border: 1px solid var(--border-shade);
-    border-radius: var(--border-radius);
-    font-size: 0.95rem;
     margin: 10px 0;
-    padding: 5px;
 }
 
 #deviceInfo td {
@@ -220,15 +242,11 @@ tbody tr:hover {
     position: fixed;
     z-index: 1;
 }
- 
-/* #modal pre {
-    border: 1px solid var(--border-main);
-    border-radius: var(--border-radius);
-    font-size: 0.95rem;
+
+#modal pre {
     margin: 0;
     margin-bottom: 10px;
-    padding: 5px;
-} */
+}
 
 #modal .data {
     background-color: var(--background-main);
@@ -264,8 +282,10 @@ tbody tr:hover {
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     box-sizing: border-box;
+    color: var(--color-main);
     cursor: pointer;
     margin-bottom: 10px;
+    text-align: left;
     width: 100%;
 }
 
@@ -273,7 +293,7 @@ tbody tr:hover {
     margin: 10px;
 }
 
-#toast .default {
+#toast .success {
     border-left: 5px solid green;
 }
 
@@ -314,7 +334,7 @@ tbody tr:hover {
     0%   { max-height: 0px; opacity: 0; }
     100% { max-height: 100px; opacity: 1; }
 }
- 
+
 @keyframes fadeOut {
     0%   { max-height: 100px; opacity: 1; }
     100% { max-height: 0; opacity: 0; }
