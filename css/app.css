@@ -15,7 +15,6 @@
     --box-shadow:       0 5px 10px rgba(0, 0, 0, 0.25);
     --header-height:    50px;
     --footer-height:    40px;
-    --font-family:      "DejaVu Sans", "Arial";
 }
 
 html[theme="dark"] {
@@ -33,7 +32,7 @@ html[theme="dark"] {
 html, body {
     background-color: var(--background-main);
     color: var(--color-main);
-    font-family: var(--font-family);
+    font-family: 'Open Sans';
     font-size: 14px;
     font-weight: 400;
     margin: 0;
@@ -42,7 +41,7 @@ html, body {
 pre {
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
-    font-family: "DejaVu Sans Mono", monospace;
+    font-family: 'Roboto Mono';
     font-size: 13px;
     padding: 5px;
 }

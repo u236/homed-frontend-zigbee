@@ -1,4 +1,24 @@
 @font-face {
+    font-family: 'Open Sans';
+    src: url('../font/open-sans-cyrillic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../font/open-sans-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    src: url('../font/roboto-mono-cyrillic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    src: url('../font/roboto-mono-latin.woff2') format('woff2');
+}
+
+@font-face {
     font-family: 'fontello';
     src: url('../font/fontello.eot') format('embedded-opentype'), url('../font/fontello.svg') format('svg'), url('../font/fontello.ttf') format('truetype'), url('../font/fontello.woff') format('woff');
 }
