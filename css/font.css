@@ -1,4 +1,9 @@
 @font-face {
+    font-family: 'Fontello';
+    src: url('../font/fontello.woff2') format('woff2');
+}
+
+@font-face {
     font-family: 'Open Sans';
     src: url('../font/open-sans-cyrillic.woff2') format('woff2');
 }
@@ -18,22 +23,11 @@
     src: url('../font/roboto-mono-latin.woff2') format('woff2');
 }
 
-@font-face {
-    font-family: 'fontello';
-    src: url('../font/fontello.eot') format('embedded-opentype'), url('../font/fontello.svg') format('svg'), url('../font/fontello.ttf') format('truetype'), url('../font/fontello.woff') format('woff');
-}
-
 [class^="icon-"] {
     display: inline-block;
-    font-family: "fontello";
+    font-family: 'Fontello';
     font-style: normal;
-    font-variant: normal;
-    font-weight: normal;
     margin: 0 0.1rem;
-    text-align: center;
-    text-transform: none;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 .icon-true:before     { content: '\e801'; }
@@ -47,3 +41,7 @@
 .icon-enable:before   { content: '\e809'; }
 .icon-edit:before     { content: '\e810'; }
 .icon-trash:before    { content: '\e811'; }
+.icon-info:before     { content: '\e812'; }
+.icon-code:before     { content: '\e813'; }
+.icon-map:before      { content: '\e814'; }
+.icon-hash:before     { content: '\e815'; }

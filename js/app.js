@@ -295,7 +295,7 @@ function showModal(name)
             fetch('html/deviceRename.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
-                modal.querySelector('.title').innerHTML = 'Renaming ' + (deviceData.name ?? deviceData.ieeeAddress);
+                modal.querySelector('.title').innerHTML = 'Renaming "' + (deviceData.name ?? deviceData.ieeeAddress) + '"';
                 modal.querySelector('input[name="name"]').value = deviceData.name ?? deviceData.ieeeAddress;
                 modal.querySelector('.rename').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('input[name="name"]').value); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
@@ -309,12 +309,14 @@ function showModal(name)
             fetch('html/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
-                modal.querySelector('.title').innerHTML = 'Remove ' + (deviceData.name ?? deviceData.ieeeAddress) + '?';
+                modal.querySelector('.title').innerHTML = 'Remove "' + (deviceData.name ?? deviceData.ieeeAddress) + '"?';
                 modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, false); });
                 modal.querySelector('.force').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, true); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
                 modal.style.display = 'block';
             });
+
+            break;
 
         case 'deviceData':
 

@@ -54,7 +54,11 @@ form label {
     text-transform: uppercase;
 }
 
-form label:has(> input[type="checkbox"]) {
+form label:last-child {
+    margin-bottom: 10px;
+}
+
+form .checkbox {
     cursor: pointer;
 }
 
@@ -69,6 +73,11 @@ form input[type="text"], form input[type="password"] {
     width: 100%;
     margin-bottom: 10px;
     padding: 0 5px;
+}
+
+form input[type="checkbox"] {
+    margin: 2px;
+    margin-right: 5px;
 }
 
 button {
@@ -100,7 +109,6 @@ th {
     padding: 5px 10px;
     text-align: left;
     text-transform: uppercase;
-    white-space: nowrap;
 }
 
 th:first-child, td:first-child {
@@ -173,6 +181,12 @@ th:last-child, td:last-child {
     padding: 0 15px;
 }
 
+.buttons {
+    display: inline-flex;
+    gap: 5px;
+    white-space: nowrap;
+}
+
 .loader {
     border: 2px solid var(--border-main);
     border-radius: 50%;
@@ -203,6 +217,9 @@ th:last-child, td:last-child {
     border-top: 1px solid var(--border-shade);
     min-width: 32px;
     padding: 10px;
+}
+
+#deviceList .lastSeen {
     white-space: nowrap;
 }
 
@@ -213,7 +230,6 @@ th:last-child, td:last-child {
 #deviceInfo td {
     border-top: 1px solid var(--border-shade);
     padding: 5px;
-    white-space: nowrap;
 }
 
 #deviceInfo tr:first-child td {
@@ -221,10 +237,11 @@ th:last-child, td:last-child {
 }
 
 #deviceInfo .title {
-    align-items: center;
+    align-items: top;
     display: flex;
     font-size: 1.25em;
     font-weight: 700;
+    gap: 10px;
     justify-content: space-between;
     margin: 10px 5px;
     min-height: 30px;
@@ -261,10 +278,6 @@ th:last-child, td:last-child {
     font-size: 1.25rem;
     margin: 0;
     margin-bottom: 10px;
-}
-
-#modal .buttons {
-    text-align: right;
 }
 
 #toast {
