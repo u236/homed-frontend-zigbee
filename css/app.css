@@ -186,6 +186,15 @@ th:last-child, td:last-child {
 .checkbox {
     cursor: pointer;
 }
+
+.control {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin: 10px 5px;
+}
+
 .loader {
     animation: spin 1s linear infinite;
     border: 2px solid var(--border-main);
@@ -235,15 +244,47 @@ th:last-child, td:last-child {
     border: none;
 }
 
-#deviceInfo .title {
-    align-items: top;
-    display: flex;
+#deviceInfo .control {
     font-size: 1.25em;
     font-weight: 700;
-    gap: 10px;
-    justify-content: space-between;
+}
+
+#map {
+    background-color: var(--background-main);
+    border: 1px solid var(--border-shade);
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+    display: block;
     margin: 10px 5px;
-    min-height: 30px;
+    width: calc(100% - 10px);
+    height: calc(100vh - var(--header-height) - var(--footer-height) - 60px);
+}
+
+#map text {
+    fill: var(--color-main);
+    font-size: 12px;
+    paint-order: stroke;
+    stroke: var(--background-main);
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-width: 2px;
+}
+
+#map .node {
+    fill: var(--background-shade);
+    cursor: pointer;
+    stroke: var(--color-main);
+    stroke-width: 1.5px;
+}
+
+#map .link {
+    stroke: var(--border-main);
+    stroke-width: 1px;
+}
+
+#map .text {
+    fill: var(--color-shade);
+    font-size: 9px;
 }
 
 #modal {
@@ -324,16 +365,22 @@ th:last-child, td:last-child {
     margin: 0;
 }
 
-#version {
-    margin: 0 5px;
-}
-
 #permitJoin .enabled {
     color: green;
 }
 
 #permitJoin .disabled {
     color: orange;
+}
+
+#version {
+    margin: 0 5px;
+}
+
+#toggleTheme {
+    cursor: pointer;
+    float: right;
+    margin: 0 5px;
 }
 
 @keyframes spin {

@@ -1,4 +1,4 @@
-var settings, mqtt, zigbeeData, deviceData, devicesLoaded = false, logicalType = {0: 'coordinator', 1: 'router', 2: 'end device'};
+var settings, mqtt, zigbeeData, deviceData, devicesLoaded = false, logicalType = ['coordinator', 'router', 'end device'];
 
 // startup
 
@@ -13,10 +13,20 @@ window.onload = function()
     window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
 
+    document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
+
     document.querySelector('#showDevices').addEventListener('click', function() { showPage('deviceList'); });
+    document.querySelector('#showMap').addEventListener('click', function() { showPage('networkMap'); });
     document.querySelector('#showSettings').addEventListener('click', function() { showModal('settings'); });
     document.querySelector('#permitJoin').addEventListener('click', function() { command({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
-    document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
+
+    document.querySelector('#toggleTheme').innerHTML = 'DARK THEME ' + (settings.darkTheme ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>');
+    document.querySelector('#toggleTheme').addEventListener('click', function()
+    {
+        settings.darkTheme = settings.darkTheme ? false : true;
+        localStorage.setItem('settings', JSON.stringify(settings));
+        location.reload();
+    });
 
     clearPage();
     connect();
@@ -35,6 +45,7 @@ function onMessageArrived(message)
     if (message.destinationName == settings.prefix + '/status/zigbee')
     {
         zigbeeData = JSON.parse(message.payloadString);
+
         document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
         document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? '?';
 
@@ -188,9 +199,75 @@ function showPage(name)
 
                 if (!deviceData.logicalType)
                 {
-                    container.querySelector('.buttons').style.display = 'none';
+                    container.querySelector('.rename').style.display = 'none';
+                    container.querySelector('.remove').style.display = 'none';
                     container.querySelector('.message').style.display = 'none';
                 }
+            });
+
+            break;
+
+        case 'networkMap':
+
+            fetch('html/networkMap.html?' + Date.now()).then(response => response.text()).then(html =>
+            {
+                var map, width, height, link, text, node, routerLinks = false;
+                var data = {nodes: [], links: []};
+                var drag = d3.drag();
+                var simulation = d3.forceSimulation();
+                var symbol = [d3.symbolStar, d3.symbolTriangle, d3.symbolCircle];
+
+                container.innerHTML = html;
+                container.querySelector('input[name="routerLinks"]').addEventListener('change', function() { routerLinks = this.checked; simulation.restart(); });
+
+                map = d3.select('#map');
+                width = parseInt(map.style('width'));
+                height = parseInt(map.style('height'));
+
+                zigbeeData.devices.forEach(device =>
+                {
+                    if (device.hasOwnProperty('removed'))
+                        return;
+
+                    data.nodes.push({id: device.networkAddress, name: device.name ?? device.ieeeAddress, type: device.logicalType});
+
+                    if (!device.hasOwnProperty('neighbors'))
+                        return;
+
+                    device.neighbors.forEach(neighbor =>
+                    {
+                        if (!zigbeeData.devices.find(item => { return item.networkAddress == neighbor.networkAddress; }))
+                            return;
+
+                        data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.networkAddress});
+                    });
+                });
+
+                link = map.selectAll('.link').data(data.links).enter().append('path').attr('class', 'link').attr('id', function(d, i) { return 'link' + i; });
+                text = map.selectAll('.text').data(data.links).enter().append('text').attr('class', 'text').attr('dy', -1);
+                node = map.append('g').selectAll('g').data(data.nodes).enter().append('g');
+
+                text.append('textPath').style('text-anchor', 'middle').attr('startOffset', '50%').attr('href', function(d, i) { return '#link' + i; }).text(function(d) { return d.linkQuality; });
+                node.append('path').attr('class', 'node').attr('d', d3.symbol().size(100).type(function(d) { return symbol[d.type ?? 2]; }));
+                node.append('text').text(function(d) { return d.name; }).attr('x', 12).attr('y', 3);
+
+                drag.on('start', function(d) { if (!d3.event.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; });
+                drag.on('drag', function(d) { d.fx = d3.event.x; d.fy = d3.event.y; });
+                drag.on('end', function(d) { if (!d3.event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; });
+
+                simulation.force('center', d3.forceCenter(width / 2, height / 2));
+                simulation.force('charge', d3.forceManyBody().strength(-1000));
+                simulation.force('radial', d3.forceRadial(function(d) { return d.type * 100; }, width / 2, height / 2).strength(1));
+                simulation.force('link', d3.forceLink().id(function(d) { return d.id; }));
+
+                simulation.nodes(data.nodes).on('tick', function()
+                {
+                    link.attr('d', function(d) { if (routerLinks || d.source.type != d.target.type) return 'M ' + d.source.x + ' ' + d.source.y + ' L ' + d.target.x + ' ' + d.target.y; });
+                    node.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+                });
+
+                simulation.force('link').links(data.links);
+                drag(node);
             });
 
             break;
