@@ -4,7 +4,7 @@ var settings, mqtt, zigbeeData, deviceData, devicesLoaded = false, logicalType =
 
 window.onload = function()
 {
-    settings = JSON.parse(localStorage.getItem('settings')) ?? {host: location.hostname, port: '9001', userName: '', password: '', prefix: 'homed', path: "/mqtt", useSSL: false, darkTheme: false};
+    settings = JSON.parse(localStorage.getItem('settings')) ?? {host: location.hostname, port: '9001', userName: '', password: '', path: '/mqtt', prefix: 'homed', useSSL: false, darkTheme: false};
     mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), settings.path, Math.random().toString(36).substring(2, 10));
 
     mqtt.onConnectionLost = onConnectionLost;
@@ -356,8 +356,8 @@ function showModal(name)
                 modal.querySelector('input[name="port"]').value = settings.port ?? '9001';
                 modal.querySelector('input[name="userName"]').value = settings.userName ?? '';
                 modal.querySelector('input[name="password"]').value = settings.password ?? '';
+                modal.querySelector('input[name="path"]').value = settings.path ?? '/mqtt';
                 modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
-                modal.querySelector('input[name="path"]').value = settings.path ?? "/mqtt";
                 modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
                 modal.querySelector('input[name="darkTheme"]').checked = settings.darkTheme ?? false;
                 modal.querySelector('.save').addEventListener('click', function() { localStorage.setItem('settings', JSON.stringify(formData(modal.querySelectorAll('form')[0]))); location.reload(); });
