@@ -8,6 +8,7 @@
     --border-shade:     #eeeeee;
     --color-main:       #444444;
     --color-shade:      #888888;
+    --color-highlight:  #000000;
     --color-success:    green;
     --color-warning:    orange;
     --color-error:      red;
@@ -27,6 +28,7 @@ html[theme="dark"] {
     --border-shade:     #222222;
     --color-main:       #cccccc;
     --color-shade:      #888888;
+    --color-highlight:  #ffffff;
 }
 
 html, body {
@@ -52,6 +54,10 @@ label {
     font-size: 0.8125rem;
     margin-bottom: 2px;
     text-transform: uppercase;
+}
+
+label:hover {
+    color: var(--color-highlight);
 }
 
 form label:last-child {
@@ -162,6 +168,10 @@ th:last-child, td:last-child {
     margin: 0 5px;
 }
 
+.header span:hover {
+    color: var(--color-highlight);
+}
+
 .content {
     min-height: calc(100vh - var(--header-height) - var(--footer-height));
     padding: 0 15px;
@@ -261,6 +271,7 @@ th:last-child, td:last-child {
 }
 
 #map text {
+    cursor: pointer;
     fill: var(--color-main);
     font-size: 12px;
     paint-order: stroke;
@@ -270,11 +281,18 @@ th:last-child, td:last-child {
     stroke-width: 2px;
 }
 
+#map text:hover {
+    fill: var(--color-highlight);
+}
+
 #map .node {
     fill: var(--background-shade);
-    cursor: pointer;
     stroke: var(--color-main);
     stroke-width: 1.5px;
+}
+
+#map .node:hover {
+    stroke: var(--color-warning);
 }
 
 #map .link {
@@ -285,6 +303,10 @@ th:last-child, td:last-child {
 #map .text {
     fill: var(--color-shade);
     font-size: 9px;
+}
+
+#map .highlight {
+    stroke: var(--color-warning);
 }
 
 #modal {
@@ -381,6 +403,10 @@ th:last-child, td:last-child {
     cursor: pointer;
     float: right;
     margin: 0 5px;
+}
+
+#toggleTheme:hover {
+    color: var(--color-main);
 }
 
 @keyframes spin {

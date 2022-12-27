@@ -245,18 +245,27 @@ function showPage(name)
 
                 link = map.selectAll('.link').data(data.links).enter().append('path').attr('class', 'link').attr('id', function(d, i) { return 'link' + i; });
                 text = map.selectAll('.text').data(data.links).enter().append('text').attr('class', 'text').attr('dy', -1);
-                node = map.append('g').selectAll('g').data(data.nodes).enter().append('g');
-
                 text.append('textPath').style('text-anchor', 'middle').attr('startOffset', '50%').attr('href', function(d, i) { return '#link' + i; }).text(function(d) { return d.linkQuality; });
+                
+                node = map.append('g').selectAll('g').data(data.nodes).enter().append('g');
                 node.append('path').attr('class', 'node').attr('d', d3.symbol().size(100).type(function(d) { return symbol[d.type ?? 2]; }));
                 node.append('text').text(function(d) { return d.name; }).attr('x', 12).attr('y', 3);
+
+                node.select('path').on('mouseenter', function(d)
+                {
+                    text.attr('display', 'none').filter(i => i.source.id == d.id || i.target.id == d.id).attr('display', 'block');
+                    link.attr('display', 'none').filter(i => i.source.id == d.id || i.target.id == d.id).attr('display', 'block').classed('highlight', true);
+                });
+
+                node.select('path').on('mouseleave', function() { text.attr('display', 'block'); link.attr('display', 'block').classed('highlight', false); });
+                node.select('text').on('click', function(d) { deviceData = zigbeeData.devices.filter(i => i.networkAddress == d.id)[0]; showPage('deviceInfo'); });
 
                 drag.on('start', function(d) { if (!d3.event.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; });
                 drag.on('drag', function(d) { d.fx = d3.event.x; d.fy = d3.event.y; });
                 drag.on('end', function(d) { if (!d3.event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; });
 
                 simulation.force('center', d3.forceCenter(width / 2, height / 2));
-                simulation.force('charge', d3.forceManyBody().strength(-1000));
+                simulation.force('charge', d3.forceManyBody().strength(-2000));
                 simulation.force('radial', d3.forceRadial(function(d) { return d.type * 100; }, width / 2, height / 2).strength(1));
                 simulation.force('link', d3.forceLink().id(function(d) { return d.id; }));
 
@@ -284,7 +293,7 @@ function showPage(name)
                     {
                         var row = container.querySelector('#deviceList tbody').insertRow(device.logicalType ? -1 : 0);
 
-                        row.addEventListener('click', function() { deviceData = device; showPage('deviceInfo'); });
+                        row.addEventListener('click', function() { deviceData = device; console.log(deviceData); showPage('deviceInfo'); });
                         row.dataset.address = device.ieeeAddress;
                         row.dataset.name = device.name ?? device.ieeeAddress;
 
