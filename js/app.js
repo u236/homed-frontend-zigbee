@@ -107,10 +107,10 @@ function onMessageArrived(message)
     else if (message.destinationName.startsWith(settings.prefix + '/device/zigbee/'))
     {
         var list = message.destinationName.split('/');
-        var payload = JSON.parse(message.payloadString);
+        var payload = message.payloadString ? JSON.parse(message.payloadString) : null;
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
 
-        if (!row)
+        if (!payload || !row)
             return;
 
         if (payload.status == 'online')
