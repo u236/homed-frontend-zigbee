@@ -292,7 +292,7 @@ th:last-child, td:last-child {
 }
 
 #map .node:hover {
-    stroke: var(--color-warning);
+    stroke: var(--color-error);
 }
 
 #map .link {
