@@ -1,4 +1,4 @@
-var settings, mqtt, zigbeeData, deviceData, logicalType = ['coordinator', 'router', 'end device'];
+var settings, mqtt, zigbeeData, deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
 
 // startup
 
@@ -11,8 +11,7 @@ window.onload = function()
     mqtt.onMessageArrived = onMessageArrived;
 
     window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
-    window.addEventListener('keydown', function(event) { if (event.key == "Esc" || event.key == "Escape") closeModal(); });
-    window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
+   window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
 
     document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
 
@@ -31,6 +30,30 @@ window.onload = function()
 
     clearPage();
     connect();
+};
+
+document.onkeydown = function(event)
+{
+    switch (event.key)
+    {
+        case 'Escape':
+        case 'Esc':
+            closeModal();
+            break;
+
+        case 'Alt': alt = true; break;
+        case 'Shift': shift = true; break;
+        case 'S': if (alt && shift) showModal('settings'); break;
+    }
+};
+
+document.onkeyup = function(event)
+{
+    switch (event.key)
+    {
+        case 'Alt': alt = false; break;
+        case 'Shift': shift = false; break;
+    }
 };
 
 // mqtt
