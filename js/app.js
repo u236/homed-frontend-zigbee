@@ -1,4 +1,4 @@
-var settings, mqtt, zigbeeData, deviceData, devicesLoaded = false, logicalType = ['coordinator', 'router', 'end device'];
+var settings, mqtt, zigbeeData, deviceData, logicalType = ['coordinator', 'router', 'end device'];
 
 // startup
 
@@ -42,30 +42,48 @@ function onConnectionLost(response)
 
 function onMessageArrived(message)
 {
-    if (message.destinationName == settings.prefix + '/status/zigbee')
+    if (message.destinationName == settings.prefix + '/service/zigbee')
     {
-        zigbeeData = JSON.parse(message.payloadString);
+        var payload = JSON.parse(message.payloadString);
 
-        document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
-        document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? '?';
-
-        if (devicesLoaded)
+        if (payload.status != 'online')
         {
-            zigbeeData.devices.forEach(device =>
-            {
-                var row = document.querySelector('tr[data-address="' + device.ieeeAddress + '"], tr[data-name="' + device.name ?? device.ieeeAddress + '"]');
+            mqtt.unsubscribe(settings.prefix + '/status/zigbee');
+            mqtt.unsubscribe(settings.prefix + '/event/zigbee');
+            mqtt.unsubscribe(settings.prefix + '/device/zigbee/#');
+            mqtt.unsubscribe(settings.prefix + '/fd/zigbee/#');
 
-                if (!row)
-                    return;
-
-                updateLastSeen(row, device.lastSeen);
-            });
+            clearPage('HOMEd ZigBee Service is OFFLINE');
         }
         else
         {
-            showPage('deviceList');
-            devicesLoaded = true;
+            mqtt.subscribe(settings.prefix + '/status/zigbee');
+            mqtt.subscribe(settings.prefix + '/event/zigbee');
         }
+    }
+    else if (message.destinationName == settings.prefix + '/status/zigbee')
+    {
+        var check = zigbeeData ? zigbeeData.devices.map(device => device.ieeeAddress) : [];
+        
+        zigbeeData = JSON.parse(message.payloadString);
+        document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
+        document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? '?';
+
+        if (JSON.stringify(check) != JSON.stringify(zigbeeData.devices.map(device => device.ieeeAddress)))
+        {
+            showPage('deviceList');
+            return;
+        }
+
+        zigbeeData.devices.forEach(device =>
+        {
+            var row = document.querySelector('tr[data-address="' + device.ieeeAddress + '"], tr[data-name="' + device.name ?? device.ieeeAddress + '"]');
+
+            if (!row)
+                return;
+
+            updateLastSeen(row, device.lastSeen);
+        });
     }
     else if (message.destinationName == settings.prefix + '/event/zigbee')
     {
@@ -100,7 +118,6 @@ function onMessageArrived(message)
 
             case 'interviewFinished':
                 showToast(html + 'interview finished');
-                clearPage();
                 break;
         }
     }
@@ -153,8 +170,7 @@ function connect()
 
         onSuccess: function(response)
         {
-            mqtt.subscribe(settings.prefix + '/status/zigbee');
-            mqtt.subscribe(settings.prefix + '/event/zigbee');
+            mqtt.subscribe(settings.prefix + '/service/zigbee');
             console.log('MQTT connected');
         }
     });
@@ -343,8 +359,8 @@ function clearPage(warning = null)
             console.log(warning);
         }
 
+        zigbeeData = undefined;
         closeModal();
-        devicesLoaded = false;
     });
 }
 
