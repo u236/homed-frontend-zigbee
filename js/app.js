@@ -229,7 +229,7 @@ function showPage(name)
 
                 for (var key in deviceData)
                 {
-                    var cell = document.querySelector('#deviceInfo .' + key);
+                    var cell = document.querySelector(' .' + key);
 
                     if (!cell)
                         continue;
@@ -237,12 +237,15 @@ function showPage(name)
                     cell.innerHTML = parseValue(key, deviceData[key]);
                 }
 
-                if (!deviceData.logicalType)
+                if (deviceData.logicalType)
                 {
-                    container.querySelector('.rename').style.display = 'none';
-                    container.querySelector('.remove').style.display = 'none';
-                    container.querySelector('.message').style.display = 'none';
+                    container.querySelector('.type').closest('tr').style.display = 'none';
+                    return;
                 }
+                
+                container.querySelector('.rename').style.display = 'none';
+                container.querySelector('.remove').style.display = 'none';
+                container.querySelector('.message').style.display = 'none';
             });
 
             break;
