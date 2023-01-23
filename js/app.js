@@ -11,7 +11,7 @@ window.onload = function()
     mqtt.onMessageArrived = onMessageArrived;
 
     window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
-   window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
+    window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
 
     document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
 
@@ -535,7 +535,7 @@ function parseValue(key, value)
 
         case 'networkAddress':
         case 'manufacturerCode':
-            return '0x' + ('0000' + value.toString(16).toUpperCase()).slice(-4);
+            return '0x' + ('0000' + value.toString(16)).slice(-4);
 
         case 'supported':
         case 'interviewFinished':

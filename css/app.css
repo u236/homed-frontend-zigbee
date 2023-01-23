@@ -121,34 +121,6 @@ th:last-child, td:last-child {
     padding-right: 5px !important;
 }
 
-.shade {
-    color: var(--color-shade);
-}
-
-.success {
-    color: var(--color-success);
-}
-
-.warning {
-    color: var(--color-warning);
-}
-
-.error {
-    color: var(--color-error);
-}
-
-.center {
-    text-align: center;
-}
-
-.right {
-    text-align: right;
-}
-
-.unavailable {
-    background-color: var(--background-error);
-}
-
 .container {
     margin: 0 auto;
     max-width: 1000px;
@@ -223,6 +195,34 @@ th:last-child, td:last-child {
   animation: fadeOut linear 0.25s;
 }
 
+.shade {
+    color: var(--color-shade);
+}
+
+.success {
+    color: var(--color-success);
+}
+
+.warning {
+    color: var(--color-warning);
+}
+
+.error {
+    color: var(--color-error);
+}
+
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+}
+
+.unavailable {
+    background-color: var(--background-error);
+}
+
 #deviceList tbody tr {
     cursor: pointer;
 }
@@ -248,6 +248,11 @@ th:last-child, td:last-child {
 #deviceInfo td {
     border-top: 1px solid var(--border-shade);
     padding: 5px;
+}
+
+#deviceInfo td:last-child {
+    font-family: 'Roboto Mono';
+    font-size: 13px;
 }
 
 #deviceInfo tr:first-child td {
