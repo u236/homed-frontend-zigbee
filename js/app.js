@@ -1,10 +1,12 @@
 var settings, mqtt, zigbeeData, deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
-
+var setting = [];
+var selected = 0;
 // startup
 
 window.onload = function()
 {
-    settings = JSON.parse(localStorage.getItem('settings')) ?? {host: location.hostname, port: '9001', userName: '', password: '', path: '/mqtt', prefix: 'homed', useSSL: false, darkTheme: false};
+    setting =  JSON.parse(localStorage.getItem('settings')) ?? [{title: location.hostname, host: location.hostname, port: '9001', userName: '', password: '', path: '/mqtt', prefix: 'homed', useSSL: false, darkTheme: false}];
+    settings = setting[selected]  ?? {title: location.hostname, host: location.hostname, port: '9001', userName: '', password: '', path: '/mqtt', prefix: 'homed', useSSL: false, darkTheme: false};;
     mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), settings.path, Math.random().toString(36).substring(2, 10));
 
     mqtt.onConnectionLost = onConnectionLost;
@@ -24,10 +26,38 @@ window.onload = function()
     document.querySelector('#toggleTheme').addEventListener('click', function()
     {
         settings.darkTheme = settings.darkTheme ? false : true;
-        localStorage.setItem('settings', JSON.stringify(settings));
+        setting[selected] = settings;
+        localStorage.settings = JSON.stringify(setting);
         location.reload();
     });
 
+    var selectElement = document.getElementById('mqttTitle');
+    while (selectElement.options.length > 0) {
+        selectElement.remove(0);
+    }
+   // selectElement.add(new Option("select"));
+    setting.forEach((element,index) => {selectElement.add(new Option(element.title,index));});
+    selectElement.add(new Option("add new"));
+  
+
+    document.querySelector('#showSelect').addEventListener('change', function(e) {
+        selected = e.target.value;
+    if (e.target.value == "add new"){
+        console.log(selectElement.options.length);
+        selected = selectElement.options.length - 1;
+        settings = {title: location.hostname, host: location.hostname, port: '9001', userName: '', password: '', path: '/mqtt', prefix: 'homed', useSSL: false, darkTheme: false};
+        showModal('settings');
+
+    }else{
+        settings = setting[selected];
+        clearPage();
+        mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), settings.path, Math.random().toString(36).substring(2, 10));
+        mqtt.onConnectionLost = onConnectionLost;
+        mqtt.onMessageArrived = onMessageArrived;
+        connect();
+        document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
+        }
+    });
     clearPage();
     connect();
 };
@@ -404,6 +434,7 @@ function showModal(name)
             fetch('html/settings.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
+                modal.querySelector('input[name="title"]').value = settings.title ?? location.hostname;
                 modal.querySelector('input[name="host"]').value = settings.host ?? location.hostname;
                 modal.querySelector('input[name="port"]').value = settings.port ?? '9001';
                 modal.querySelector('input[name="userName"]').value = settings.userName ?? '';
@@ -412,7 +443,18 @@ function showModal(name)
                 modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
                 modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
                 modal.querySelector('input[name="darkTheme"]').checked = settings.darkTheme ?? false;
-                modal.querySelector('.save').addEventListener('click', function() { localStorage.setItem('settings', JSON.stringify(formData(modal.querySelectorAll('form')[0]))); location.reload(); });
+                modal.querySelector('.save').addEventListener('click', function() 
+                { 
+                    setting[selected] = formData(modal.querySelectorAll('form')[0]);
+                    localStorage.settings = JSON.stringify(setting);
+                    location.reload(); 
+                });
+                modal.querySelector('.delete').addEventListener('click', function() 
+                { 
+                    setting.splice(selected,1);
+                    localStorage.settings=JSON.stringify(setting);
+                    location.reload(); 
+                });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
                 modal.style.display = 'block';
              
