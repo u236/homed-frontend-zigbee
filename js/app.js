@@ -1,10 +1,11 @@
-var settings, mqtt, zigbeeData, deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
+var settings, presets, mqtt, zigbeeData, deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
 
 // startup
 
 window.onload = function()
 {
     settings = JSON.parse(localStorage.getItem('settings')) ?? {host: location.hostname, port: '9001', userName: '', password: '', path: '/mqtt', prefix: 'homed', useSSL: false, darkTheme: false};
+    presets = JSON.parse(localStorage.getItem('presets')) ?? {};
     mqtt = new Paho.MQTT.Client(settings.host, Number(settings.port), settings.path, Math.random().toString(36).substring(2, 10));
 
     mqtt.onConnectionLost = onConnectionLost;
@@ -21,12 +22,7 @@ window.onload = function()
     document.querySelector('#permitJoin').addEventListener('click', function() { command({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
 
     document.querySelector('#toggleTheme').innerHTML = 'DARK THEME ' + (settings.darkTheme ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>');
-    document.querySelector('#toggleTheme').addEventListener('click', function()
-    {
-        settings.darkTheme = settings.darkTheme ? false : true;
-        localStorage.setItem('settings', JSON.stringify(settings));
-        location.reload();
-    });
+    document.querySelector('#toggleTheme').addEventListener('click', function() { settings.darkTheme = settings.darkTheme ? false : true; updateSettings(); });
 
     clearPage();
     connect();
@@ -397,6 +393,9 @@ function showModal(name)
 {
     var modal = document.querySelector('#modal');
 
+    if (modal.style.display != 'block' && (name == 'settings' || name == 'presets' || name == 'deviceRename'))
+        modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+
     switch (name)
     {
         case 'settings':
@@ -404,6 +403,7 @@ function showModal(name)
             fetch('html/settings.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
+
                 modal.querySelector('input[name="host"]').value = settings.host ?? location.hostname;
                 modal.querySelector('input[name="port"]').value = settings.port ?? '9001';
                 modal.querySelector('input[name="userName"]').value = settings.userName ?? '';
@@ -412,13 +412,46 @@ function showModal(name)
                 modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
                 modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
                 modal.querySelector('input[name="darkTheme"]').checked = settings.darkTheme ?? false;
-                modal.querySelector('.save').addEventListener('click', function() { localStorage.setItem('settings', JSON.stringify(formData(modal.querySelectorAll('form')[0]))); location.reload(); });
+                modal.querySelector('.save').addEventListener('click', function() { settings = formData(modal.querySelectorAll('form')[0]); updateSettings(); });
+                modal.querySelector('.preset').addEventListener('click', function() { showModal('presets'); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
-                modal.style.display = 'block';
-             
-                modal.querySelector('input[name="host"]').focus();
-                modal.addEventListener('keypress', function(event) { if (event.key === 'Enter') modal.querySelector('.save').click(); });
 
+                modal.style.display = 'block';
+                modal.querySelector('input[name="host"]').focus();
+            });
+
+            break;
+
+        case 'presets':
+
+            fetch('html/presets.html?' + Date.now()).then(response => response.text()).then(html =>
+            {
+                modal.querySelector('.data').innerHTML = html;
+
+                for (var name in presets)
+                {
+                    var row = modal.querySelector('table tbody').insertRow();
+
+                    for (var i = 0; i < 2; i++)
+                    {
+                        var cell = row.insertCell();
+
+                        cell.dataset.preset = name;
+
+                        switch (i)
+                        {
+                            case 0: cell.innerHTML = name; cell.addEventListener('click', function() { settings = presets[this.dataset.preset]; updateSettings(); }); break;
+                            case 1: cell.innerHTML = '<i class="icon-trash"></i>'; cell.addEventListener('click', function() { removePreset(this.dataset.preset); }); break;
+                        }
+                    }
+                }
+
+                modal.querySelector('input[name="preset"]').value = settings.host ?? location.hostname;
+                modal.querySelector('.save').addEventListener('click', function() { savePreset(modal.querySelector('input[name="preset"]').value); });
+                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+
+                modal.style.display = 'block';
+                modal.querySelector('input[name="preset"]').focus();
             });
 
             break;
@@ -428,14 +461,14 @@ function showModal(name)
             fetch('html/deviceRename.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
+
                 modal.querySelector('.title').innerHTML = 'Renaming "' + (deviceData.name ?? deviceData.ieeeAddress) + '"';
                 modal.querySelector('input[name="name"]').value = deviceData.name ?? deviceData.ieeeAddress;
-                modal.querySelector('.rename').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('input[name="name"]').value); });
+                modal.querySelector('.save').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('input[name="name"]').value); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
-                modal.style.display = 'block';
 
+                modal.style.display = 'block';
                 modal.querySelector('input[name="name"]').focus();
-                modal.addEventListener('keypress', function(event) { if (event.key === 'Enter') modal.querySelector('.rename').click(); });
             });
 
             break;
@@ -445,10 +478,12 @@ function showModal(name)
             fetch('html/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
+
                 modal.querySelector('.title').innerHTML = 'Remove "' + (deviceData.name ?? deviceData.ieeeAddress) + '"?';
                 modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, false); });
                 modal.querySelector('.force').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, true); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+
                 modal.style.display = 'block';
             });
 
@@ -459,9 +494,11 @@ function showModal(name)
             fetch('html/deviceData.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 modal.querySelector('.data').innerHTML = html;
+
                 modal.querySelector('.title').innerHTML = (deviceData.name ?? deviceData.ieeeAddress);
                 modal.querySelector('.json').innerHTML = JSON.stringify(deviceData, null, 4);
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+
                 modal.style.display = 'block';
             });
 
@@ -501,6 +538,31 @@ function closeToast(item)
         setTimeout(function() { toast.removeChild(item); }, 200);
         item.classList.add('fade-out');
     }
+}
+
+// settings and ptesets
+
+function updateSettings()
+{
+    localStorage.setItem('settings', JSON.stringify(settings));
+    location.reload();
+}
+
+function savePreset(name)
+{
+    if (!name)
+        return;
+
+    presets[name] = settings;
+    localStorage.setItem('presets', JSON.stringify(presets));
+    showModal('presets');
+}
+
+function removePreset(name)
+{
+    delete presets[name];
+    localStorage.setItem('presets', JSON.stringify(presets));
+    showModal('presets');
 }
 
 // action

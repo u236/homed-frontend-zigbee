@@ -113,12 +113,21 @@ th {
     text-transform: uppercase;
 }
 
+td {
+    border-top: 1px solid var(--border-shade);
+    padding: 5px;
+}
+
 th:first-child, td:first-child {
     padding-left: 5px !important;
 }
 
 th:last-child, td:last-child {
     padding-right: 5px !important;
+}
+
+tr:first-child td {
+    border: none;
 }
 
 .container {
@@ -245,18 +254,9 @@ th:last-child, td:last-child {
     margin: 10px 0;
 }
 
-#deviceInfo td {
-    border-top: 1px solid var(--border-shade);
-    padding: 5px;
-}
-
 #deviceInfo td:last-child {
     font-family: 'Roboto Mono';
     font-size: 13px;
-}
-
-#deviceInfo tr:first-child td {
-    border: none;
 }
 
 #deviceInfo .control {
@@ -345,6 +345,27 @@ th:last-child, td:last-child {
     font-size: 1.25rem;
     margin: 0;
     margin-bottom: 10px;
+}
+
+#presetList tr:last-child td {
+    padding-bottom: 15px;
+}
+
+#presetList td {
+    cursor: pointer;
+}
+
+#presetList td:last-child {
+    text-align: right;
+    width: 12px;
+}
+
+#presetList td:hover {
+    color: var(--color-warning);
+}
+
+#presetList td:last-child:hover {
+    color: var(--color-error);
 }
 
 #toast {
