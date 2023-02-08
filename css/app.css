@@ -109,6 +109,7 @@ html, body {
 }
 
 .homed th {
+    border-bottom: 1px solid var(--border-shade);
     color: var(--color-shade);
     font-size: 0.8125rem;
     font-weight: normal;
@@ -146,11 +147,17 @@ html, body {
     height: var(--header-height);
     line-height: var(--header-height);
     padding: 0 15px;
+    white-space: nowrap;
+}
+
+.homed .header .container {
+    display: flex; 
+    justify-content: space-between;
 }
 
 .homed .header span {
     cursor: pointer;
-    margin: 0 5px;
+    padding: 0 5px;
 }
 
 .homed .header span:hover {
@@ -170,6 +177,12 @@ html, body {
     height: var(--footer-height);
     line-height: var(--footer-height);
     padding: 0 15px;
+    white-space: nowrap;
+}
+
+.homed .footer .container {
+    display: flex; 
+    justify-content: space-between;
 }
 
 .homed .buttons {
@@ -415,11 +428,7 @@ html, body {
 }
 
 .homed #permitJoin {
-    float: right;
-}
-
-.homed #permitJoin span {
-    margin: 0;
+    margin-left: auto;
 }
 
 .homed #permitJoin .enabled {
@@ -431,13 +440,13 @@ html, body {
 }
 
 .homed #version {
-    margin: 0 5px;
+    padding: 0 5px;
 }
 
 .homed #toggleTheme {
     cursor: pointer;
-    float: right;
-    margin: 0 5px;
+    margin-left: auto;
+    padding: 0 5px;
 }
 
 .homed #toggleTheme:hover {
