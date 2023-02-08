@@ -14,8 +14,7 @@ window.onload = function()
     window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
 
-    document.documentElement.setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
-
+    document.querySelector('.homed').setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
     document.querySelector('#showDevices').addEventListener('click', function() { showPage('deviceList'); });
     document.querySelector('#showMap').addEventListener('click', function() { showPage('networkMap'); });
     document.querySelector('#showSettings').addEventListener('click', function() { showModal('settings'); });
@@ -165,7 +164,7 @@ function onMessageArrived(message)
     {
         var list = message.destinationName.split('/'), payload = JSON.parse(message.payloadString);
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
-        var message = document.querySelector('#deviceInfo .message');
+        var message = document.querySelector('.deviceInfo .message');
 
         if (row)
             row.querySelector('.linkQuality').innerHTML = payload.linkQuality;
@@ -330,7 +329,7 @@ function showPage(name)
                 {
                     if (!device.hasOwnProperty('removed'))
                     {
-                        var row = container.querySelector('#deviceList tbody').insertRow(device.logicalType ? -1 : 0);
+                        var row = container.querySelector('.deviceList tbody').insertRow(device.logicalType ? -1 : 0);
 
                         row.addEventListener('click', function() { deviceData = device; console.log(deviceData); showPage('deviceInfo'); });
                         row.dataset.address = device.ieeeAddress;
@@ -405,7 +404,7 @@ function showModal(name)
                 modal.querySelector('.data').innerHTML = html;
 
                 if (Object.keys(presets).length)
-                    modal.querySelector('#presetList').style.display = 'block';
+                    modal.querySelector('.presetList').style.display = 'block';
 
                 for (var name in presets)
                 {
