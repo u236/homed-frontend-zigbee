@@ -347,8 +347,13 @@ tr:first-child td {
     margin-bottom: 10px;
 }
 
-#presetList tr:last-child td {
-    padding-bottom: 15px;
+#presetList {
+    display: none;
+}
+
+#presetList table {
+    margin: 0;
+    margin-bottom: 10px;
 }
 
 #presetList td {

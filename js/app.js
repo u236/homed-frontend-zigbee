@@ -22,7 +22,7 @@ window.onload = function()
     document.querySelector('#permitJoin').addEventListener('click', function() { command({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
 
     document.querySelector('#toggleTheme').innerHTML = 'DARK THEME ' + (settings.darkTheme ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>');
-    document.querySelector('#toggleTheme').addEventListener('click', function() { settings.darkTheme = settings.darkTheme ? false : true; updateSettings(); });
+    document.querySelector('#toggleTheme').addEventListener('click', function() { settings.darkTheme = settings.darkTheme ? false : true; saveSettings(); });
 
     clearPage();
     connect();
@@ -404,29 +404,8 @@ function showModal(name)
             {
                 modal.querySelector('.data').innerHTML = html;
 
-                modal.querySelector('input[name="host"]').value = settings.host ?? location.hostname;
-                modal.querySelector('input[name="port"]').value = settings.port ?? '9001';
-                modal.querySelector('input[name="userName"]').value = settings.userName ?? '';
-                modal.querySelector('input[name="password"]').value = settings.password ?? '';
-                modal.querySelector('input[name="path"]').value = settings.path ?? '/mqtt';
-                modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
-                modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
-                modal.querySelector('input[name="darkTheme"]').checked = settings.darkTheme ?? false;
-                modal.querySelector('.save').addEventListener('click', function() { settings = formData(modal.querySelectorAll('form')[0]); updateSettings(); });
-                modal.querySelector('.preset').addEventListener('click', function() { showModal('presets'); });
-                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
-
-                modal.style.display = 'block';
-                modal.querySelector('input[name="host"]').focus();
-            });
-
-            break;
-
-        case 'presets':
-
-            fetch('html/presets.html?' + Date.now()).then(response => response.text()).then(html =>
-            {
-                modal.querySelector('.data').innerHTML = html;
+                if (Object.keys(presets).length)
+                    modal.querySelector('#presetList').style.display = 'block';
 
                 for (var name in presets)
                 {
@@ -440,18 +419,43 @@ function showModal(name)
 
                         switch (i)
                         {
-                            case 0: cell.innerHTML = name; cell.addEventListener('click', function() { settings = presets[this.dataset.preset]; updateSettings(); }); break;
+                            case 0: cell.innerHTML = name; cell.addEventListener('click', function() { settings = presets[this.dataset.preset]; saveSettings(); }); break;
                             case 1: cell.innerHTML = '<i class="icon-trash"></i>'; cell.addEventListener('click', function() { removePreset(this.dataset.preset); }); break;
                         }
                     }
                 }
 
-                modal.querySelector('input[name="preset"]').value = settings.host ?? location.hostname;
-                modal.querySelector('.save').addEventListener('click', function() { savePreset(modal.querySelector('input[name="preset"]').value); });
+                modal.querySelector('input[name="host"]').value = settings.host ?? location.hostname;
+                modal.querySelector('input[name="port"]').value = settings.port ?? '9001';
+                modal.querySelector('input[name="userName"]').value = settings.userName ?? '';
+                modal.querySelector('input[name="password"]').value = settings.password ?? '';
+                modal.querySelector('input[name="path"]').value = settings.path ?? '/mqtt';
+                modal.querySelector('input[name="prefix"]').value = settings.prefix ?? 'homed';
+                modal.querySelector('input[name="useSSL"]').checked = settings.useSSL ?? false;
+                modal.querySelector('input[name="darkTheme"]').checked = settings.darkTheme ?? false;
+                modal.querySelector('form').addEventListener('input', function() { settings = formData(modal.querySelectorAll('form')[0]); });
+                modal.querySelector('.save').addEventListener('click', function() { saveSettings(); });
+                modal.querySelector('.preset').addEventListener('click', function() { showModal('preset'); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
 
                 modal.style.display = 'block';
-                modal.querySelector('input[name="preset"]').focus();
+                modal.querySelector('input[name="host"]').focus();
+            });
+
+            break;
+
+        case 'preset':
+
+            fetch('html/preset.html?' + Date.now()).then(response => response.text()).then(html =>
+            {
+                modal.querySelector('.data').innerHTML = html;
+
+                modal.querySelector('input[name="name"]').value = settings.host ?? location.hostname;
+                modal.querySelector('.save').addEventListener('click', function() { savePreset(modal.querySelector('input[name="name"]').value); });
+                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+
+                modal.style.display = 'block';
+                modal.querySelector('input[name="name"]').focus();
             });
 
             break;
@@ -542,7 +546,7 @@ function closeToast(item)
 
 // settings and ptesets
 
-function updateSettings()
+function saveSettings()
 {
     localStorage.setItem('settings', JSON.stringify(settings));
     location.reload();
@@ -555,14 +559,14 @@ function savePreset(name)
 
     presets[name] = settings;
     localStorage.setItem('presets', JSON.stringify(presets));
-    showModal('presets');
+    showModal('settings');
 }
 
 function removePreset(name)
 {
     delete presets[name];
     localStorage.setItem('presets', JSON.stringify(presets));
-    showModal('presets');
+    showModal('settings');
 }
 
 // action
