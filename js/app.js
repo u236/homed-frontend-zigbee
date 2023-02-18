@@ -14,13 +14,16 @@ window.onload = function()
     window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
 
+    document.querySelector('body').setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
     document.querySelector('.homed').setAttribute('theme', settings.darkTheme ? 'dark' : 'light');
+
+    document.querySelector('#serverInfo').innerHTML = settings.host + ':' + settings.port;
+    document.querySelector('#toggleTheme').innerHTML = 'DARK THEME ' + (settings.darkTheme ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>');
+
     document.querySelector('#showDevices').addEventListener('click', function() { showPage('deviceList'); });
     document.querySelector('#showMap').addEventListener('click', function() { showPage('networkMap'); });
     document.querySelector('#showSettings').addEventListener('click', function() { showModal('settings'); });
     document.querySelector('#permitJoin').addEventListener('click', function() { command({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
-
-    document.querySelector('#toggleTheme').innerHTML = 'DARK THEME ' + (settings.darkTheme ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>');
     document.querySelector('#toggleTheme').addEventListener('click', function() { settings.darkTheme = settings.darkTheme ? false : true; saveSettings(); });
 
     clearPage();
@@ -86,7 +89,7 @@ function onMessageArrived(message)
         
         zigbeeData = JSON.parse(message.payloadString);
         document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
-        document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? '?';
+        document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? 'unknown';
 
         if (JSON.stringify(check) != JSON.stringify(zigbeeData.devices.map(device => device.ieeeAddress)))
         {

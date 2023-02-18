@@ -3,6 +3,14 @@ html, body {
     margin: 0;
 }
 
+body[theme="light"] {
+    background-color: #eeeeee;
+}
+
+body[theme="dark"] {
+    background-color: #222222;
+}
+
 .homed[theme="light"] {
     --background-main:  #ffffff;
     --background-shade: #eeeeee;
@@ -165,7 +173,7 @@ html, body {
 }
 
 .homed .content {
-    min-height: calc(100vh - var(--header-height) - var(--footer-height));
+    min-height: calc(100vh - var(--header-height) - var(--footer-height) - 1px);
     padding: 0 15px;
 }
 
@@ -439,7 +447,7 @@ html, body {
     color: orange;
 }
 
-.homed #version {
+.homed #footerData {
     padding: 0 5px;
 }
 
