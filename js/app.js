@@ -85,13 +85,13 @@ function onMessageArrived(message)
     }
     else if (message.destinationName == settings.prefix + '/status/zigbee')
     {
-        var check = zigbeeData ? zigbeeData.devices.map(device => device.ieeeAddress) : [];
+        var check = zigbeeData ? zigbeeData.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : [];
         
         zigbeeData = JSON.parse(message.payloadString);
         document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
         document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? 'unknown';
 
-        if (JSON.stringify(check) != JSON.stringify(zigbeeData.devices.map(device => device.ieeeAddress)))
+        if (JSON.stringify(check) != JSON.stringify(zigbeeData.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false}))))
         {
             showPage('deviceList');
             return;
