@@ -203,19 +203,11 @@ body[theme="dark"] {
     cursor: pointer;
 }
 
-.homed .control {
-    align-items: center;
-    display: flex;
-    gap: 10px;
-    justify-content: space-between;
-    margin: 10px 5px;
-}
-
 .homed .loader {
     animation: homedSpin 1s linear infinite;
     border: 2px solid var(--border-main);
-    border-radius: 50%;
     border-top: 2px solid var(--border-loader);
+    border-radius: 50%;
     margin: 20px auto;
     width: 20px;
     height: 20px;
@@ -229,7 +221,7 @@ body[theme="dark"] {
   animation: homedFadeOut linear 0.25s;
 }
 
-.homed.shade {
+.homed .shade {
     color: var(--color-shade);
 }
 
@@ -279,14 +271,54 @@ body[theme="dark"] {
     margin: 10px 0;
 }
 
+.homed .deviceInfo table {
+    margin-bottom: 20px;
+}
+
+.homed .deviceInfo td {
+    white-space: nowrap;
+}
+
+.homed .deviceInfo td:first-child {
+    width: 25%;
+}
+
 .homed .deviceInfo td:last-child {
     font-family: 'Roboto Mono';
     font-size: 13px;
 }
 
-.homed .deviceInfo .control {
+.homed .deviceInfo .title {
+    align-items: center;
+    display: flex;
     font-size: 1.25em;
     font-weight: 700;
+    gap: 10px;
+    justify-content: space-between;
+    margin: 10px 5px;
+}
+
+.homed .deviceInfo .exposes .value {
+    padding-right: 20px;
+    width: 1%;
+}
+
+.homed .deviceInfo .exposes .value .color {
+    border-radius: 25%;
+    height: 14px;
+    width: 14px;
+}
+
+.homed .deviceInfo .exposes .control {
+    color: var(--color-shade);
+}
+
+.homed .deviceInfo .exposes .control span {
+    cursor: pointer;
+}
+
+.homed .deviceInfo .exposes .control span:hover {
+    color: var(--color-highlight);
 }
 
 .homed .presetList {

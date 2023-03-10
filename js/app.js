@@ -1,4 +1,4 @@
-var settings, presets, mqtt, zigbeeData, deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
+var settings, presets, mqtt, zigbeeData, exposeData = [], deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
 
 // startup
 
@@ -23,7 +23,7 @@ window.onload = function()
     document.querySelector('#showDevices').addEventListener('click', function() { showPage('deviceList'); });
     document.querySelector('#showMap').addEventListener('click', function() { showPage('networkMap'); });
     document.querySelector('#showSettings').addEventListener('click', function() { showModal('settings'); });
-    document.querySelector('#permitJoin').addEventListener('click', function() { command({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
+    document.querySelector('#permitJoin').addEventListener('click', function() { sendCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
     document.querySelector('#toggleTheme').addEventListener('click', function() { settings.darkTheme = settings.darkTheme ? false : true; saveSettings(); });
 
     clearPage();
@@ -73,6 +73,7 @@ function onMessageArrived(message)
             mqtt.unsubscribe(settings.prefix + '/status/zigbee');
             mqtt.unsubscribe(settings.prefix + '/event/zigbee');
             mqtt.unsubscribe(settings.prefix + '/device/zigbee/#');
+            mqtt.unsubscribe(settings.prefix + '/expose/zigbee/#');
             mqtt.unsubscribe(settings.prefix + '/fd/zigbee/#');
 
             clearPage('HOMEd ZigBee Service is OFFLINE');
@@ -163,17 +164,24 @@ function onMessageArrived(message)
             row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>';
         }
     }
+    else if (message.destinationName.startsWith(settings.prefix + '/expose/zigbee/'))
+    {
+        var list = message.destinationName.split('/');
+        exposeData[list[3]] = JSON.parse(message.payloadString);
+    }
     else if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))
     {
         var list = message.destinationName.split('/'), payload = JSON.parse(message.payloadString);
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
-        var message = document.querySelector('.deviceInfo .message');
-
+       
         if (row)
+        {
             row.querySelector('.linkQuality').innerHTML = payload.linkQuality;
+            return;
+        }
 
-        if (message && deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[3]) || (deviceData.hasOwnProperty('ieeeAddress') && deviceData.ieeeAddress == list[3])))
-            message.innerHTML = JSON.stringify(payload, null, 4);
+        if (deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[3]) || (deviceData.hasOwnProperty('ieeeAddress') && deviceData.ieeeAddress == list[3])))
+            Object.keys(payload).forEach(item => { updateExpose(list[4], item, payload[item]); });
     }
 }
 
@@ -184,24 +192,22 @@ function connect()
         userName: settings.userName,
         password: settings.password,
         useSSL: settings.useSSL,
-
-        onFailure: function(response)
-        {
-            clearPage('MQTT connection failed: ' + response.errorMessage);
-        },
-
-        onSuccess: function(response)
-        {
-            mqtt.subscribe(settings.prefix + '/service/zigbee');
-            console.log('MQTT connected');
-        }
+        onFailure: function(response) { clearPage('MQTT connection failed: ' + response.errorMessage); },
+        onSuccess: function(response) { mqtt.subscribe(settings.prefix + '/service/zigbee'); console.log('MQTT connected'); }
     });
 }
 
-function command(data)
+function sendCommand(data)
 {
     var message = new Paho.MQTT.Message(JSON.stringify(data));
     message.destinationName = settings.prefix + '/command/zigbee';
+    mqtt.send(message);
+}
+
+function sendData(endpoint, data)
+{
+    var message = new Paho.MQTT.Message(JSON.stringify(data));
+    message.destinationName = settings.prefix + '/td/zigbee/' + deviceData.ieeeAddress + (isNaN(endpoint) ? '' : '/' + endpoint);
     mqtt.send(message);
 }
 
@@ -220,6 +226,8 @@ function showPage(name)
 
             fetch('html/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
             {
+                var exposes = exposeData[deviceData.ieeeAddress] ?? exposeData[deviceData.name];
+
                 container.innerHTML = html;
                 container.querySelector('.rename').addEventListener('click', function() { showModal('deviceRename'); });
                 container.querySelector('.remove').addEventListener('click', function() { showModal('deviceRemove'); });
@@ -235,15 +243,27 @@ function showPage(name)
                     cell.innerHTML = parseValue(key, deviceData[key]);
                 }
 
-                if (deviceData.logicalType)
+                if (!deviceData.logicalType)
                 {
-                    container.querySelector('.type').closest('tr').style.display = 'none';
+                    container.querySelector('.rename').style.display = 'none';
+                    container.querySelector('.remove').style.display = 'none';
+                    container.querySelector('.exposes').style.display = 'none';
                     return;
                 }
                 
-                container.querySelector('.rename').style.display = 'none';
-                container.querySelector('.remove').style.display = 'none';
-                container.querySelector('.message').style.display = 'none';
+                container.querySelector('.type').closest('tr').style.display = 'none';
+
+                if (!exposes)
+                    return;
+
+                Object.keys(exposes).forEach(endpoint => 
+                {
+                    var options = exposes[endpoint].options;
+                    exposes[endpoint].items.forEach(expose => { addExpose(endpoint, expose, options); });
+                });
+
+                addExpose('common', 'linkQuality');
+                sendCommand({action: 'getProperties', device: deviceData.ieeeAddress});
             });
 
             break;
@@ -334,7 +354,7 @@ function showPage(name)
                     {
                         var row = container.querySelector('.deviceList tbody').insertRow(device.logicalType ? -1 : 0);
 
-                        row.addEventListener('click', function() { deviceData = device; console.log(deviceData); showPage('deviceInfo'); });
+                        row.addEventListener('click', function() { deviceData = device; showPage('deviceInfo'); });
                         row.dataset.address = device.ieeeAddress;
                         row.dataset.name = device.name ?? device.ieeeAddress;
 
@@ -361,6 +381,7 @@ function showPage(name)
                 });
 
                 mqtt.subscribe(settings.prefix + '/device/zigbee/#');
+                mqtt.subscribe(settings.prefix + '/expose/zigbee/#');
                 mqtt.subscribe(settings.prefix + '/fd/zigbee/#');
             });
 
@@ -576,13 +597,13 @@ function removePreset(name)
 function renameDevice(ieeeAddress, name)
 {
     clearPage();
-    command({action: 'setDeviceName', device: ieeeAddress, name: name});
+    sendCommand({action: 'setDeviceName', device: ieeeAddress, name: name});
 }
 
 function removeDevice(ieeeAddress, force)
 {
     clearPage();
-    command({action: 'removeDevice', device: ieeeAddress, force: force});
+    sendCommand({action: 'removeDevice', device: ieeeAddress, force: force});
 }
 
 // misc
