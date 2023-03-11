@@ -1,7 +1,13 @@
 function exposeTitle(name, suffix)
 {
-    var title = name.replace(/([A-Z])/g, ' $1').toLowerCase();
-    return title.charAt(0).toUpperCase() + title.slice(1) + (isNaN(suffix) ? '' : ' ' + suffix);
+    var title = name.replace(/([A-Z])/g, ' $1');
+
+    if (isNaN(suffix))
+        title = (suffix != 'common' ? suffix + ' ' : '') + title;
+    else
+        title += ' ' + suffix;
+
+    return title.charAt(0).toUpperCase() + title.slice(1).toLowerCase();
 }
 
 function exposeUnit(name)
@@ -23,7 +29,7 @@ function exposeUnit(name)
     }
 }
 
-function addExpose(endpoint, expose, options)
+function addExpose(endpoint, expose, options = {})
 {
     var suffix = isNaN(endpoint) ? '' : '-' + endpoint;
     var list;
@@ -47,7 +53,7 @@ function addExpose(endpoint, expose, options)
         var controlCell = row.insertCell();
 
         row.dataset.name = name + suffix;
-        titleCell.innerHTML =  exposeTitle(name, endpoint);
+        titleCell.innerHTML =  exposeTitle(name, options['name'] ?? endpoint);
         valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
         valueCell.classList.add('value');
         controlCell.classList.add('control');
@@ -81,15 +87,15 @@ function addExpose(endpoint, expose, options)
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {[name]: parseInt(this.value)}); });
                 break;
 
-            case 'leftMode':
-            case 'rightMode':
-            case 'buttonMode':
-            case 'indicatorMode':
-            case 'switchMode':
             case 'sensitivityMode':
             case 'detectionMode':
             case 'distanceMode':
+            case 'leftMode':
+            case 'rightMode':
+            case 'buttonMode':
             case 'operationMode':
+            case 'indicatorMode':
+            case 'switchMode':
 
                 if (!options[name])
                     break;

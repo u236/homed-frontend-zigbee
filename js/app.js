@@ -167,6 +167,10 @@ function onMessageArrived(message)
     else if (message.destinationName.startsWith(settings.prefix + '/expose/zigbee/'))
     {
         var list = message.destinationName.split('/');
+
+        if (!message.payloadString)
+            return;
+
         exposeData[list[3]] = JSON.parse(message.payloadString);
     }
     else if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))

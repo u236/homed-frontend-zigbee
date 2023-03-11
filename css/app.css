@@ -15,6 +15,7 @@ body[theme="dark"] {
     --background-main:  #ffffff;
     --background-shade: #eeeeee;
     --background-hover: #dddddd;
+    --background-range: #bbbbbb;
     --background-error: #ffdddd;
     --border-loader:    #888888;
     --border-main:      #cccccc;
@@ -28,6 +29,7 @@ body[theme="dark"] {
     --background-main:  #111111;
     --background-shade: #222222;
     --background-hover: #333333;
+    --background-range: #555555;
     --background-error: #330000;
     --border-loader:    #888888;
     --border-main:      #444444;
@@ -92,6 +94,20 @@ body[theme="dark"] {
 .homed input[type="checkbox"] {
     margin: 2px;
     margin-right: 5px;
+}
+
+.homed input[type="range"] {
+    appearance: none;
+    background-color: var(--background-hover);
+    border: 2px solid var(--background-main);
+    border-radius: 5px;
+    margin-left: -2px;
+    width: 200px;
+    height: 5px;
+}
+
+.homed input[type="range"]:hover {
+    background-color: var(--background-range);
 }
 
 .homed button {
@@ -299,7 +315,7 @@ body[theme="dark"] {
 }
 
 .homed .deviceInfo .exposes .value {
-    padding-right: 20px;
+    min-width: 40px;
     width: 1%;
 }
 
