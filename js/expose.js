@@ -94,6 +94,13 @@ function addExpose(endpoint, expose, options = {})
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {[name]: parseInt(this.value)}); });
                 break;
 
+            case 'statusMemory':
+            case 'interlock':
+            case 'childLock':
+                controlCell.innerHTML = '<span class="control">enable</span>/<span>disable</span>';
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML == 'enable'}); }) );
+                break;
+
             case 'sensitivityMode':
             case 'detectionMode':
             case 'distanceMode':
