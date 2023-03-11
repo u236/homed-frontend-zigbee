@@ -257,14 +257,8 @@ function showPage(name)
                 
                 container.querySelector('.type').closest('tr').style.display = 'none';
 
-                if (!exposes)
-                    return;
-
-                Object.keys(exposes).forEach(endpoint => 
-                {
-                    var options = exposes[endpoint].options;
-                    exposes[endpoint].items.forEach(expose => { addExpose(endpoint, expose, options); });
-                });
+                if (exposes)
+                    Object.keys(exposes).forEach(endpoint => { exposes[endpoint].items.forEach(expose => { addExpose(endpoint, expose, exposes[endpoint].options); }); });
 
                 addExpose('common', 'linkQuality');
                 sendCommand({action: 'getProperties', device: deviceData.ieeeAddress});
