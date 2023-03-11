@@ -1,3 +1,5 @@
+var colorPicker;
+
 function exposeTitle(name, suffix)
 {
     var title = name.replace(/([A-Z])/g, ' $1');
@@ -77,6 +79,11 @@ function addExpose(endpoint, expose, options = {})
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {level: Math.round(this.value * 255 / 100)}); });
                 break;
 
+            case 'color':
+                colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 200});
+                colorPicker.on("input:end", function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                break;
+
             case 'colorTemperature':
             case 'pattern':
             case 'timer':
@@ -147,6 +154,7 @@ function updateExpose(endpoint, name, value)
 
         case 'color':
             cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
+            colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
             break;
 
         default:
