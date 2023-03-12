@@ -618,7 +618,7 @@ function parseValue(key, value)
     switch (key)
     {
         case 'logicalType': return logicalType[value];
-        case 'powerSource': return value !== undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : '-';
+        case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : '-';
 
         case 'networkAddress':
         case 'manufacturerCode':
@@ -626,7 +626,7 @@ function parseValue(key, value)
 
         case 'supported':
         case 'interviewFinished':
-            return value !== undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'warning') + '"></i>' : '-';
+            return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'warning') + '"></i>' : '-';
 
         default: return value;
     }

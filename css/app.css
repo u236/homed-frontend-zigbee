@@ -15,7 +15,6 @@ body[theme="dark"] {
     --background-main:  #ffffff;
     --background-shade: #eeeeee;
     --background-hover: #dddddd;
-    --background-range: #bbbbbb;
     --background-error: #ffdddd;
     --border-loader:    #888888;
     --border-main:      #cccccc;
@@ -23,13 +22,15 @@ body[theme="dark"] {
     --color-main:       #444444;
     --color-shade:      #888888;
     --color-highlight:  #000000;
+    --range-main:       #cccccc;
+    --range-dark:       #666666;
+    --range-light:      #eeeeee;
 }
 
 .homed[theme="dark"] {
     --background-main:  #111111;
     --background-shade: #222222;
     --background-hover: #333333;
-    --background-range: #555555;
     --background-error: #330000;
     --border-loader:    #888888;
     --border-main:      #444444;
@@ -37,6 +38,9 @@ body[theme="dark"] {
     --color-main:       #cccccc;
     --color-shade:      #888888;
     --color-highlight:  #ffffff;
+    --range-main:       #444444;
+    --range-dark:       #222222;
+    --range-light:      #cccccc;
 }
 
 .homed {
@@ -98,16 +102,38 @@ body[theme="dark"] {
 
 .homed input[type="range"] {
     appearance: none;
-    background-color: var(--background-hover);
+    background-color: var(--range-main);
     border: 2px solid var(--background-main);
     border-radius: 5px;
     margin-left: -2px;
-    width: 200px;
+    width: 150px;
     height: 5px;
 }
 
-.homed input[type="range"]:hover {
-    background-color: var(--background-range);
+.homed  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 2px 0 #000000;
+    height: 13px;
+    width: 13px;
+}
+
+.homed input[type="range"]::-moz-range-thumb {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 0 2px #666666;
+    height: 13px;
+    width: 13px;
+}
+
+.homed input.level {
+    background: linear-gradient(to right, var(--range-dark), var(--range-light));
+}
+
+.homed input.colorTemperature {
+    background: linear-gradient(to right, #afd0fb, #f5f3f2, #f2a43a);
 }
 
 .homed button {
@@ -145,6 +171,7 @@ body[theme="dark"] {
 .homed td {
     border-top: 1px solid var(--border-shade);
     padding: 5px;
+    white-space: nowrap;
 }
 
 .homed th:first-child, .homed td:first-child {
@@ -275,12 +302,8 @@ body[theme="dark"] {
 
 .homed .deviceList td {
     border-top: 1px solid var(--border-shade);
-    min-width: 32px;
     padding: 10px;
-}
-
-.homed .deviceList .lastSeen {
-    white-space: nowrap;
+    min-width: 32px;
 }
 
 .homed .deviceInfo pre {
@@ -291,11 +314,9 @@ body[theme="dark"] {
     margin-bottom: 20px;
 }
 
-.homed .deviceInfo td {
-    white-space: nowrap;
-}
-
 .homed .deviceInfo td:first-child {
+
+    min-width: 150px;
     width: 25%;
 }
 
@@ -311,18 +332,19 @@ body[theme="dark"] {
     font-weight: 700;
     gap: 10px;
     justify-content: space-between;
-    margin: 10px 5px;
+    margin: 10px 4px;
 }
 
 .homed .deviceInfo .exposes .value {
+    padding-right: 20px;
     min-width: 40px;
     width: 1%;
 }
 
 .homed .deviceInfo .exposes .value .color {
     border-radius: 25%;
-    height: 14px;
-    width: 14px;
+    height: 13px;
+    width: 13px;
 }
 
 .homed .deviceInfo .exposes .control {

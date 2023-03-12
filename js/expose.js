@@ -74,22 +74,32 @@ function addExpose(endpoint, expose, options = {})
                 break;
 
             case 'level':
-                controlCell.innerHTML = '<input type="range" min="1" max="100" step="1">';
+                controlCell.innerHTML = '<input type="range" min="1" max="100" class="level">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + ' %</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {level: Math.round(this.value * 255 / 100)}); });
                 break;
 
             case 'color':
-                colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 200});
+                colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
                 colorPicker.on("input:end", function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
 
             case 'colorTemperature':
+                var option = options['colorTemperature'] ?? {};
+                controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
+                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + '</span>'; });
+                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {colorTemperature: parseInt(this.value)}); });
+                break;
+
             case 'pattern':
             case 'timer':
             case 'threshold':
                 var option = options[name] ?? {};
-                controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '">';
+
+                if (isNaN(option.min) || isNaN(option.max))
+                    break;
+
+                controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + '</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {[name]: parseInt(this.value)}); });
                 break;
