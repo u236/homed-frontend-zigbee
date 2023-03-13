@@ -14,21 +14,67 @@ function exposeTitle(name, suffix)
 
 function exposeUnit(name)
 {
+    var unit;
+
     switch (name)
     {
-        case 'battery':     return '%';
-        case 'temperature': return '°C';
-        case 'pressure':    return 'kPa';
-        case 'humidity':    return '%';
-        case 'mousture':    return '%';
-        case 'illuminance': return 'lux';
-        case 'co2':         return 'ppm';
-        case 'voc':         return 'ppb';
-        case 'energy':      return 'kW·h';
-        case 'voltage':     return 'V';
-        case 'current':     return 'A';
-        case 'power':       return 'W';
+        case 'battery':
+        case 'level':
+        case 'humidity':
+        case 'mousture':
+            unit = '%';
+            break;
+
+        case 'temperature':
+        case 'localTemperature':
+        case 'heatingPoint':
+            unit = '°C';
+            break;
+
+        case 'targetDistance':
+        case 'distanceMin':
+        case 'distanceMax':
+            unit = 'm';
+            break;
+
+        case 'detectionDelay':
+        case 'fadingTime':
+            unit = 's';
+            break;
+
+        case 'pressure':
+            unit = 'kPa';
+            break;
+
+        case 'illuminance':
+            unit = 'lux';
+            break;
+
+        case 'co2':
+            unit = 'ppm';
+            break;
+
+        case 'voc':
+            unit = 'ppb';
+            break;
+
+        case 'energy':
+            unit = 'kW·h';
+            break;
+
+        case 'voltage':
+            unit = 'V';
+            break;
+        case 'current':
+            unit = 'A';
+            break;
+
+        case 'power':
+            unit = 'W';
+            break;
     }
+
+    return unit ? ' ' + unit : '';
 }
 
 function addExpose(endpoint, expose, options = {})
@@ -39,7 +85,7 @@ function addExpose(endpoint, expose, options = {})
     switch(expose)
     {
         case 'light':
-            list = ['switch'].concat(options.light);
+            list = ['switch'].concat(options['light']);
             break;
 
         case 'cover':
@@ -98,20 +144,29 @@ function addExpose(endpoint, expose, options = {})
             case 'position':
                 controlCell.innerHTML = '<input type="range" min="0" max="100">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + ' %</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {position: parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {position: parse(this.value)}); });
                 break;
             
             case 'pattern':
+            case 'heatingPoint':
             case 'timer':
             case 'threshold':
+            case 'sensitivity':
+            case 'distanceMin':
+            case 'distanceMax':
+            case 'detectionDelay':
+            case 'fadingTime':
+            case 'reportingDelay':
+            case 'temperatureOffset':
+
                 var option = options[name] ?? {};
 
                 if (isNaN(option.min) || isNaN(option.max))
                     break;
 
                 controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
-                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + '</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {[name]: parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + exposeUnit(name) + '</span>'; });
+                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {[name]: parseFloat(this.value)}); });
                 break;
 
             case 'color':
@@ -167,40 +222,32 @@ function updateExpose(endpoint, name, value)
         case 'pattern':
         case 'timer':
         case 'threshold':
+        case 'sensitivity':
+        case 'distanceMin':
+        case 'distanceMax':
+        case 'detectionDelay':
+        case 'fadingTime':
         case 'reportingDelay':
         case 'temperatureOffset':
 
             var control = document.querySelector('.deviceInfo .exposes tr[data-name="' + name + suffix + '"] td.control input');
 
             if (name == 'level')
-            {
                 value = Math.round(value * 100 / 255);
-                cell.innerHTML = value + ' %';
-            }
-            else
-                cell.innerHTML = value;
 
             if (control)
                 control.value = value;
 
+            cell.innerHTML = value + exposeUnit(name);
             break;
 
-
         case 'color':
-            cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
             colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
+            cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
             break;
 
         default:
-
-            if (typeof value == 'number')
-            {
-                var unit = exposeUnit(name);
-                cell.innerHTML = (Math.round(value * 1000) / 1000) + (unit ? ' ' + unit : '');
-                break;
-            }
-
-            cell.innerHTML = value;
+            cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + exposeUnit(name) : value;
             break;
     }
 }
