@@ -42,6 +42,10 @@ function addExpose(endpoint, expose, options = {})
             list = ['switch'].concat(options.light);
             break;
 
+        case 'cover':
+            list = ['cover', 'position'];
+            break;
+            
         default:
             list = [expose];
             break;
@@ -73,15 +77,15 @@ function addExpose(endpoint, expose, options = {})
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {powerOnStatus: item.innerHTML}); }) );
                 break;
 
+            case 'cover':
+                controlCell.innerHTML = '<span class="control">open</span>/<span>close</span>/<span>stop</span>';
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {cover: item.innerHTML}); }) );
+                break;
+                                
             case 'level':
                 controlCell.innerHTML = '<input type="range" min="1" max="100" class="level">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + ' %</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {level: Math.round(this.value * 255 / 100)}); });
-                break;
-
-            case 'color':
-                colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
-                colorPicker.on("input:end", function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
 
             case 'colorTemperature':
@@ -91,6 +95,12 @@ function addExpose(endpoint, expose, options = {})
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {colorTemperature: parseInt(this.value)}); });
                 break;
 
+            case 'position':
+                controlCell.innerHTML = '<input type="range" min="0" max="100">';
+                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + ' %</span>'; });
+                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {position: parseInt(this.value)}); });
+                break;
+            
             case 'pattern':
             case 'timer':
             case 'threshold':
@@ -104,9 +114,15 @@ function addExpose(endpoint, expose, options = {})
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {[name]: parseInt(this.value)}); });
                 break;
 
+            case 'color':
+                colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
+                colorPicker.on("input:end", function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                break;
+                
             case 'statusMemory':
             case 'interlock':
             case 'childLock':
+            case 'reverse':
                 controlCell.innerHTML = '<span class="control">enable</span>/<span>disable</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML == 'enable'}); }) );
                 break;
@@ -147,6 +163,7 @@ function updateExpose(endpoint, name, value)
 
         case 'level':
         case 'colorTemperature':
+        case 'position':
         case 'pattern':
         case 'timer':
         case 'threshold':
