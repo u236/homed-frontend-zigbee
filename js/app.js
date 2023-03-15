@@ -64,7 +64,9 @@ function onConnectionLost(response)
 
 function onMessageArrived(message)
 {
-    if (message.destinationName == settings.prefix + '/service/zigbee')
+    var topic = message.destinationName.replace(settings.prefix, '');
+
+    if (topic == '/service/zigbee')
     {
         var payload = JSON.parse(message.payloadString);
 
@@ -84,7 +86,7 @@ function onMessageArrived(message)
             mqtt.subscribe(settings.prefix + '/event/zigbee');
         }
     }
-    else if (message.destinationName == settings.prefix + '/status/zigbee')
+    else if (topic == '/status/zigbee')
     {
         var check = zigbeeData ? zigbeeData.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : [];
         
@@ -108,7 +110,7 @@ function onMessageArrived(message)
             updateLastSeen(row, device.lastSeen);
         });
     }
-    else if (message.destinationName == settings.prefix + '/event/zigbee')
+    else if (topic == '/event/zigbee')
     {
         var payload = JSON.parse(message.payloadString);
         var html = 'Device <b>' + payload.device + '</b> ';
@@ -144,9 +146,9 @@ function onMessageArrived(message)
                 break;
         }
     }
-    else if (message.destinationName.startsWith(settings.prefix + '/device/zigbee/'))
+    else if (topic.startsWith('/device/zigbee/'))
     {
-        var list = message.destinationName.split('/');
+        var list = topic.split('/');
         var payload = message.payloadString ? JSON.parse(message.payloadString) : null;
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
 
@@ -164,18 +166,18 @@ function onMessageArrived(message)
             row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>';
         }
     }
-    else if (message.destinationName.startsWith(settings.prefix + '/expose/zigbee/'))
+    else if (topic.startsWith('/expose/zigbee/'))
     {
-        var list = message.destinationName.split('/');
+        var list = topic.split('/');
 
         if (!message.payloadString)
             return;
 
         exposeData[list[3]] = JSON.parse(message.payloadString);
     }
-    else if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))
+    else if (topic.startsWith('/fd/zigbee/'))
     {
-        var list = message.destinationName.split('/'), payload = JSON.parse(message.payloadString);
+        var list = topic.split('/'), payload = JSON.parse(message.payloadString);
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
        
         if (row)
