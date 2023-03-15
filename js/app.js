@@ -146,6 +146,7 @@ function onMessageArrived(message)
     }
     else if (message.destinationName.startsWith(settings.prefix + '/device/zigbee/'))
     {
+        message.destinationName = message.destinationName.replace(settings.prefix, "");
         var list = message.destinationName.split('/');
         var payload = message.payloadString ? JSON.parse(message.payloadString) : null;
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
@@ -166,6 +167,7 @@ function onMessageArrived(message)
     }
     else if (message.destinationName.startsWith(settings.prefix + '/expose/zigbee/'))
     {
+        message.destinationName = message.destinationName.replace(settings.prefix, "");
         var list = message.destinationName.split('/');
 
         if (!message.payloadString)
@@ -175,6 +177,7 @@ function onMessageArrived(message)
     }
     else if (message.destinationName.startsWith(settings.prefix + '/fd/zigbee/'))
     {
+         message.destinationName = message.destinationName.replace(settings.prefix, "");
         var list = message.destinationName.split('/'), payload = JSON.parse(message.payloadString);
         var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
        
