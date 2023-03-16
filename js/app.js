@@ -352,6 +352,9 @@ function showPage(name)
                 {
                     if (!device.hasOwnProperty('removed'))
                     {
+                        var name = device.name ?? device.ieeeAddress;
+                        mqtt.subscribe(settings.prefix + '/expose/zigbee/'+ name);
+                        
                         var row = container.querySelector('.deviceList tbody').insertRow(device.logicalType ? -1 : 0);
 
                         row.addEventListener('click', function() { deviceData = device; showPage('deviceInfo'); });
