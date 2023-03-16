@@ -1,4 +1,4 @@
-var settings, presets, mqtt, zigbeeData, exposeData = [], deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
+var settings, presets, mqtt, page, zigbeeData, exposeData = [], deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
 
 // startup
 
@@ -102,7 +102,7 @@ function onMessageArrived(message)
 
         zigbeeData.devices.forEach(device =>
         {
-            var row = document.querySelector('tr[data-address="' + device.ieeeAddress + '"], tr[data-name="' + device.name ?? device.ieeeAddress + '"]');
+            var row = document.querySelector('tr[data-address="' + device.ieeeAddress + '"], tr[data-name="' + device.name + '"]');
 
             if (!row)
                 return;
@@ -186,7 +186,7 @@ function onMessageArrived(message)
             return;
         }
 
-        if (deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[3]) || (deviceData.hasOwnProperty('ieeeAddress') && deviceData.ieeeAddress == list[3])))
+        if (deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[3]) || deviceData.ieeeAddress == list[3]))
             Object.keys(payload).forEach(item => { updateExpose(list[4], item, payload[item]); });
     }
 }
@@ -223,8 +223,11 @@ function showPage(name)
 {
     var container = document.querySelector('.content .container');
 
-    if (!zigbeeData)
+    if (!zigbeeData || page == name)
         return;
+
+    location.hash = name;
+    page = name;
 
     switch (name)
     {
@@ -290,7 +293,7 @@ function showPage(name)
                     if (device.hasOwnProperty('removed'))
                         return;
 
-                    data.nodes.push({id: device.networkAddress, name: device.name ?? device.ieeeAddress, type: device.logicalType});
+                    data.nodes.push({id: device.networkAddress, name: device.name, type: device.logicalType});
 
                     if (!device.hasOwnProperty('neighbors'))
                         return;
@@ -354,9 +357,12 @@ function showPage(name)
                     {
                         var row = container.querySelector('.deviceList tbody').insertRow(device.logicalType ? -1 : 0);
 
+                        if (!device.name)
+                            device.name = device.ieeeAddress;
+
                         row.addEventListener('click', function() { deviceData = device; showPage('deviceInfo'); });
                         row.dataset.address = device.ieeeAddress;
-                        row.dataset.name = device.name ?? device.ieeeAddress;
+                        row.dataset.name = device.name;
 
                         for (var i = 0; i < 9; i++)
                         {
@@ -364,7 +370,7 @@ function showPage(name)
 
                             switch (i)
                             {
-                                case 0: cell.innerHTML = device.name ?? device.ieeeAddress; break;
+                                case 0: cell.innerHTML = device.name; break;
                                 case 1: cell.innerHTML = device.manufacturerName ?? '-'; break;
                                 case 2: cell.innerHTML = device.modelName ?? '-'; break;
                                 case 3: cell.innerHTML = logicalType[device.logicalType]; break;
@@ -387,8 +393,6 @@ function showPage(name)
 
             break;
     }
-
-    location.hash = name;
 }
 
 function clearPage(warning = null)
@@ -489,8 +493,8 @@ function showModal(name)
             {
                 modal.querySelector('.data').innerHTML = html;
 
-                modal.querySelector('.title').innerHTML = 'Renaming "' + (deviceData.name ?? deviceData.ieeeAddress) + '"';
-                modal.querySelector('input[name="name"]').value = deviceData.name ?? deviceData.ieeeAddress;
+                modal.querySelector('.title').innerHTML = 'Renaming "' + deviceData.name + '"';
+                modal.querySelector('input[name="name"]').value = deviceData.name;
                 modal.querySelector('.save').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('input[name="name"]').value); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
 
@@ -506,7 +510,7 @@ function showModal(name)
             {
                 modal.querySelector('.data').innerHTML = html;
 
-                modal.querySelector('.title').innerHTML = 'Remove "' + (deviceData.name ?? deviceData.ieeeAddress) + '"?';
+                modal.querySelector('.title').innerHTML = 'Remove "' + deviceData.name + '"?';
                 modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, false); });
                 modal.querySelector('.force').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, true); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
@@ -522,7 +526,7 @@ function showModal(name)
             {
                 modal.querySelector('.data').innerHTML = html;
 
-                modal.querySelector('.title').innerHTML = (deviceData.name ?? deviceData.ieeeAddress);
+                modal.querySelector('.title').innerHTML = deviceData.name;
                 modal.querySelector('.json').innerHTML = JSON.stringify(deviceData, null, 4);
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
 
