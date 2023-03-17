@@ -386,6 +386,9 @@ function showPage(name)
                     }
                 });
 
+                container.querySelectorAll('.deviceList th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(this.dataset.index); }) );
+                sortTable(localStorage.getItem('sort') ?? 0);
+
                 mqtt.subscribe(settings.prefix + '/device/zigbee/#');
                 mqtt.subscribe(settings.prefix + '/expose/zigbee/#');
                 mqtt.subscribe(settings.prefix + '/fd/zigbee/#');
@@ -650,4 +653,32 @@ function updateLastSeen(row, lastSeen)
         case interval >= 60:    cell.innerHTML = Math.round(interval / 60) + ' min'; break;
         default:                cell.innerHTML = 'now'; break;
     }
+}
+
+function sortTable(index)
+{
+    var table = document.querySelector('.deviceList')
+    var check = true;
+
+    while (check)
+    {
+        var rows = table.rows;
+
+        check = false;
+
+        for (var i = 2; i < rows.length - 1; i++)
+        {
+            if (rows[i].querySelectorAll('td')[index].innerHTML.toLowerCase() > rows[i + 1].querySelectorAll('td')[index].innerHTML.toLowerCase())
+            {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                check = true;
+                break;
+            }
+        }
+    }
+
+    table.querySelectorAll('th.sort').forEach(cell => cell.classList.remove('warning') );
+    table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
+
+    localStorage.setItem('sort', index);
 }

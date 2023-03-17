@@ -306,6 +306,14 @@ body[theme="dark"] {
     min-width: 32px;
 }
 
+.homed .deviceList .sort {
+    cursor: pointer;
+}
+
+.homed .deviceList .sort:hover {
+    color: var(--color-warning);
+}
+
 .homed .deviceInfo pre {
     margin: 10px 0;
 }
