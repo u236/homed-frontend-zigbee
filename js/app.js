@@ -96,7 +96,7 @@ function onMessageArrived(message)
 
         if (JSON.stringify(check) != JSON.stringify(zigbeeData.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false}))))
         {
-            showPage('deviceList');
+            showPage('deviceList', true);
             return;
         }
 
@@ -219,11 +219,11 @@ function sendData(endpoint, data)
 
 // page
 
-function showPage(name)
+function showPage(name, force = false)
 {
     var container = document.querySelector('.content .container');
 
-    if (!zigbeeData || page == name)
+    if (!zigbeeData || (page == name && !force))
         return;
 
     location.hash = name;

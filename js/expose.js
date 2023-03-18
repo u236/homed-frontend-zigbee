@@ -119,12 +119,12 @@ function addExpose(endpoint, expose, options = {})
                 break;
 
             case 'powerOnStatus':
-                controlCell.innerHTML = '<span class="control">on</span>/<span>off</span>/<span>toggle</span>/<span>previous</span>';
+                controlCell.innerHTML = '<span class="control">on</span>/<span>off</span>/<span>previous</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {powerOnStatus: item.innerHTML}); }) );
                 break;
 
             case 'cover':
-                controlCell.innerHTML = '<span class="control">open</span>/<span>close</span>/<span>stop</span>';
+                controlCell.innerHTML = '<span class="control">open</span>/<span>stop</span>/<span>close</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {cover: item.innerHTML}); }) );
                 break;
                                 
@@ -144,7 +144,7 @@ function addExpose(endpoint, expose, options = {})
             case 'position':
                 controlCell.innerHTML = '<input type="range" min="0" max="100">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + ' %</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {position: parse(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {position: parseInt(this.value)}); });
                 break;
             
             case 'pattern':
@@ -177,6 +177,7 @@ function addExpose(endpoint, expose, options = {})
             case 'statusMemory':
             case 'interlock':
             case 'childLock':
+            case 'calibration':
             case 'reverse':
                 controlCell.innerHTML = '<span class="control">enable</span>/<span>disable</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML == 'enable'}); }) );
@@ -191,6 +192,8 @@ function addExpose(endpoint, expose, options = {})
             case 'operationMode':
             case 'indicatorMode':
             case 'switchMode':
+            case 'lightType':
+            case 'switchType':
 
                 if (!options[name])
                     break;
