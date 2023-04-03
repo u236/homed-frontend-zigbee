@@ -260,8 +260,6 @@ function showPage(name, force = false)
                     return;
                 }
                 
-                container.querySelector('.type').closest('tr').style.display = 'none';
-
                 if (exposes)
                     Object.keys(exposes).forEach(endpoint => { exposes[endpoint].items.forEach(expose => { addExpose(endpoint, expose, exposes[endpoint].options); }); });
 
