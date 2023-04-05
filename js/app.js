@@ -178,8 +178,8 @@ function onMessageArrived(message)
     else if (topic.startsWith('/fd/zigbee/'))
     {
         var list = topic.split('/'), payload = JSON.parse(message.payloadString);
-        var row = document.querySelector('tr[data-address="' + list[3] + '"], tr[data-name="' + list[3] + '"]');
-       
+        var row = document.querySelector('.deviceList tr[data-address="' + list[3] + '"], .deviceList tr[data-name="' + list[3] + '"]');
+
         if (row)
         {
             row.querySelector('.linkQuality').innerHTML = payload.linkQuality;
