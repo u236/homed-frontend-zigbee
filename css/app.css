@@ -63,6 +63,7 @@ body[theme="dark"] {
     border-radius: var(--border-radius);
     font-family: 'Roboto Mono';
     font-size: 13px;
+    overflow-x: auto;
     padding: 5px;
 }
 
@@ -110,7 +111,7 @@ body[theme="dark"] {
     height: 5px;
 }
 
-.homed  input[type="range"]::-webkit-slider-thumb {
+.homed input[type="range"]::-webkit-slider-thumb {
     appearance: none;
     background-color: #ffffff;
     border-radius: 50%;

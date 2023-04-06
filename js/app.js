@@ -1,4 +1,4 @@
-var settings, presets, mqtt, page, zigbeeData, exposeData = [], deviceData, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
+var settings, presets, mqtt, page, zigbeeData, exposeData = [], deviceData, endpoints, logicalType = ['coordinator', 'router', 'end device'], alt = false, shift = false;
 
 // startup
 
@@ -213,7 +213,7 @@ function sendCommand(data)
 function sendData(endpoint, data)
 {
     var message = new Paho.MQTT.Message(JSON.stringify(data));
-    message.destinationName = settings.prefix + '/td/zigbee/' + deviceData.ieeeAddress + (isNaN(endpoint) ? '' : '/' + endpoint);
+    message.destinationName = settings.prefix + '/td/zigbee/' + (zigbeeData.names ? deviceData.name : deviceData.ieeeAddress) + (isNaN(endpoint) ? '' : '/' + endpoint);
     mqtt.send(message);
 }
 
@@ -241,6 +241,7 @@ function showPage(name, force = false)
                 container.querySelector('.rename').addEventListener('click', function() { showModal('deviceRename'); });
                 container.querySelector('.remove').addEventListener('click', function() { showModal('deviceRemove'); });
                 container.querySelector('.data').addEventListener('click', function() { showModal('deviceData'); });
+                container.querySelector('.topics').addEventListener('click', function() { showModal('deviceTopics'); });
 
                 for (var key in deviceData)
                 {
@@ -260,8 +261,10 @@ function showPage(name, force = false)
                     return;
                 }
                 
+                endpoints = {fd: [], td: []};
+
                 if (exposes)
-                    Object.keys(exposes).forEach(endpoint => { exposes[endpoint].items.forEach(expose => { addExpose(endpoint, expose, exposes[endpoint].options); }); });
+                    Object.keys(exposes).forEach(endpoint => { exposes[endpoint].items.forEach(expose => { addExpose(endpoint, expose, exposes[endpoint].options, endpoints); }); });
 
                 addExpose('common', 'linkQuality');
                 sendCommand({action: 'getProperties', device: deviceData.ieeeAddress});
@@ -494,7 +497,7 @@ function showModal(name)
             {
                 modal.querySelector('.data').innerHTML = html;
 
-                modal.querySelector('.title').innerHTML = 'Renaming "' + deviceData.name + '"';
+                modal.querySelector('.title').innerHTML = 'Renaming "' + deviceData.name + '"...';
                 modal.querySelector('input[name="name"]').value = deviceData.name;
                 modal.querySelector('.save').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('input[name="name"]').value); });
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
@@ -529,6 +532,39 @@ function showModal(name)
 
                 modal.querySelector('.title').innerHTML = deviceData.name;
                 modal.querySelector('.json').innerHTML = JSON.stringify(deviceData, null, 4);
+                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+
+                modal.style.display = 'block';
+            });
+
+            break;
+
+        case 'deviceTopics':
+
+            fetch('html/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
+            {
+                var device = zigbeeData.names ? deviceData.name : deviceData.ieeeAddress;
+                var list;
+
+                modal.querySelector('.data').innerHTML = html;
+
+                list = modal.querySelector('.list');
+                list.innerHTML += '<label>Availability:</label><pre>' + settings.prefix + '/device/zigbee/' + device + '</pre>';
+                list.innerHTML += '<label>Exposes:</label><pre>' + settings.prefix + '/expose/zigbee/' + device + '</pre>';
+
+                if (endpoints.fd.length)
+                {
+                    list.innerHTML += '<label>From device:</label><pre class="fd"></pre>';
+                    endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += settings.prefix + '/fd/zigbee/' + device + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; }); 
+                }
+
+                if (endpoints.td.length)
+                {
+                    list.innerHTML += '<label>To device:</label><pre class="td"></pre>';
+                    endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += settings.prefix + '/td/zigbee/' + device + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; }); 
+                }
+
+                modal.querySelector('.title').innerHTML = 'Topics for "' + deviceData.name + '":';
                 modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
 
                 modal.style.display = 'block';

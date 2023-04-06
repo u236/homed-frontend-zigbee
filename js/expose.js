@@ -77,9 +77,10 @@ function exposeUnit(name)
     return unit ? ' ' + unit : '';
 }
 
-function addExpose(endpoint, expose, options = {})
+function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 {
     var suffix = isNaN(endpoint) ? '' : '-' + endpoint;
+    var control = true;
     var list;
 
     switch(expose)
@@ -201,8 +202,20 @@ function addExpose(endpoint, expose, options = {})
                 options[name].forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
+
+            default:
+                control = false;
         }
     });
+
+    if (!endpoints)
+        return;
+
+    if (!endpoints.fd.includes(endpoint))
+        isNaN(endpoint) ? endpoints.fd.unshift(endpoint) : endpoints.fd.push(endpoint);
+
+    if (!endpoints.td.includes(endpoint) && control)
+        isNaN(endpoint) ? endpoints.td.unshift(endpoint) : endpoints.td.push(endpoint);
 }
 
 function updateExpose(endpoint, name, value)
