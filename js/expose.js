@@ -3,13 +3,7 @@ var colorPicker;
 function exposeTitle(name, suffix)
 {
     var title = name.replace(/([A-Z])/g, ' $1');
-
-    if (isNaN(suffix))
-        title = (suffix != 'common' ? suffix + ' ' : '') + title;
-    else
-        title += ' ' + suffix;
-
-    return title.charAt(0).toUpperCase() + title.slice(1).toLowerCase();
+    return title.charAt(0).toUpperCase() + title.slice(1).toLowerCase() + (suffix != 'common' ? ' ' + suffix : '');
 }
 
 function exposeUnit(name)
@@ -21,7 +15,7 @@ function exposeUnit(name)
         case 'battery':
         case 'level':
         case 'humidity':
-        case 'mousture':
+        case 'moisture':
             unit = '%';
             break;
 
@@ -92,7 +86,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         case 'cover':
             list = ['cover', 'position'];
             break;
-            
+
         default:
             list = [expose];
             break;
@@ -111,6 +105,9 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         valueCell.classList.add('value');
         controlCell.classList.add('control');
 
+        if (options[name] == 'raw')
+            row.dataset.option = 'raw';
+
         switch (name)
         {
             case 'switch':
@@ -128,7 +125,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.innerHTML = '<span class="control">open</span>/<span>stop</span>/<span>close</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {cover: item.innerHTML}); }) );
                 break;
-                                
+
             case 'level':
                 controlCell.innerHTML = '<input type="range" min="1" max="100" class="level">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + ' %</span>'; });
@@ -147,7 +144,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + ' %</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {position: parseInt(this.value)}); });
                 break;
-            
+
             case 'pattern':
             case 'heatingPoint':
             case 'timer':
@@ -174,7 +171,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
                 colorPicker.on("input:end", function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
-                
+
             case 'statusMemory':
             case 'interlock':
             case 'childLock':
@@ -221,11 +218,12 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 function updateExpose(endpoint, name, value)
 {
     var suffix = isNaN(endpoint) ? '' : '-' + endpoint;
-    var cell = document.querySelector('.deviceInfo table.exposes tr[data-name="' + name + suffix + '"] td.value');
+    var row = document.querySelector('.deviceInfo table.exposes tr[data-name="' + name + suffix + '"]');
+    var cell = row ? row.querySelector('td.value') : null;
 
     if (!cell)
         return;
-        
+
     switch (name)
     {
         case 'status':
@@ -263,7 +261,7 @@ function updateExpose(endpoint, name, value)
             break;
 
         default:
-            cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + exposeUnit(name) : value;
+            cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + (row.dataset.option != 'raw' ? exposeUnit(name) : '') : value;
             break;
     }
 }
