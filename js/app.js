@@ -89,7 +89,7 @@ function onMessageArrived(message)
     else if (topic == '/status/zigbee')
     {
         var check = zigbeeData ? zigbeeData.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : [];
-        
+
         zigbeeData = JSON.parse(message.payloadString);
         document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
         document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? 'unknown';
@@ -260,7 +260,7 @@ function showPage(name, force = false)
                     container.querySelector('.exposes').style.display = 'none';
                     return;
                 }
-                
+
                 endpoints = {fd: [], td: []};
 
                 if (exposes)
@@ -311,7 +311,7 @@ function showPage(name, force = false)
                 link = map.selectAll('.link').data(data.links).enter().append('path').attr('class', 'link').attr('id', function(d, i) { return 'link' + i; });
                 text = map.selectAll('.text').data(data.links).enter().append('text').attr('class', 'text').attr('dy', -1);
                 text.append('textPath').style('text-anchor', 'middle').attr('startOffset', '50%').attr('href', function(d, i) { return '#link' + i; }).text(function(d) { return d.linkQuality; });
-                
+
                 node = map.append('g').selectAll('g').data(data.nodes).enter().append('g');
                 node.append('path').attr('class', 'node').attr('d', d3.symbol().size(100).type(function(d) { return symbol[d.type ?? 2]; }));
                 node.append('text').text(function(d) { return d.name; }).attr('x', 12).attr('y', 3);
@@ -555,13 +555,13 @@ function showModal(name)
                 if (endpoints.fd.length)
                 {
                     list.innerHTML += '<label>From device:</label><pre class="fd"></pre>';
-                    endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += settings.prefix + '/fd/zigbee/' + device + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; }); 
+                    endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += settings.prefix + '/fd/zigbee/' + device + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
                 }
 
                 if (endpoints.td.length)
                 {
                     list.innerHTML += '<label>To device:</label><pre class="td"></pre>';
-                    endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += settings.prefix + '/td/zigbee/' + device + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; }); 
+                    endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += settings.prefix + '/td/zigbee/' + device + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
                 }
 
                 modal.querySelector('.title').innerHTML = 'Topics for "' + deviceData.name + '":';
