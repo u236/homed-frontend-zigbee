@@ -89,24 +89,24 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'colorTemperature':
                 var option = options['colorTemperature'] ?? {};
                 controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
-                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span class="shade">' + this.value + '</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { sendData(endpoint, {colorTemperature: parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {colorTemperature: parseInt(this.value)}); });
                 break;
 
             case 'cover':
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {cover: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {cover: item.innerHTML}); } }) );
                 break;
 
             case 'powerOnStatus':
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>previous</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {powerOnStatus: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {powerOnStatus: item.innerHTML}); } }) );
                 break;
 
             case 'switch':
                 row.dataset.name = 'status' + suffix;
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {status: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) sendData(endpoint, {status: item.innerHTML}); }) );
                 break;
 
             // bool
@@ -122,14 +122,14 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'reverse':
             case 'statusMemory':
                 controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML == 'enable'}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) {  valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); } }) );
                 break;
 
             // bool trigger
             case 'co2FactoryReset':
             case 'co2ForceCalibration':
                 controlCell.innerHTML = '<span>trigger</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: true}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != 'true') { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) } }) );
                 break;
 
             // percentage
@@ -189,7 +189,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                     break;
 
                 options[name].forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
                 break;
 
             default:
@@ -260,7 +260,6 @@ function updateExpose(endpoint, name, value)
             if (control)
                 control.value = value;
 
-            cell.dataset.value = value;
             cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
             break;
 
@@ -268,4 +267,6 @@ function updateExpose(endpoint, name, value)
             cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + (row.dataset.option != 'raw' ? exposeUnit(name) : '') : value;
             break;
     }
+
+    cell.dataset.value = value;
 }
