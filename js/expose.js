@@ -12,6 +12,9 @@ function exposeTitle(name, suffix)
         default:     title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
     }
 
+    if (['p1', 'p2', 'p3', 'p4'].includes(title[1]))
+        title[1] = title[1].toUpperCase();
+
     return title.join(' ') + (suffix != 'common' ? ' ' + suffix : '');
 }
 
@@ -46,20 +49,48 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 {
     var suffix = isNaN(endpoint) ? '' : '-' + endpoint;
     var control = true;
-    var list;
+    var list = [];
 
     switch(expose)
     {
-        case 'light':
-            list = ['switch'].concat(options['light']);
-            break;
-
         case 'cover':
             list = ['cover', 'position'];
             break;
 
+        case 'light':
+            list = ['switch'].concat(options.light);
+            break;
+
+        case 'thermostat':
+
+            list = ['temperature', 'heating'];
+            options = options.thermostat ?? {};
+
+            if (options)
+                Object.keys(options).forEach(item => { if (item != 'status') list.push(item); else list.unshift('switch'); } );
+
+            break;
+
+        case 'thermostatProgram':
+
+            var types = ["weekday", "saturday", "sunday"];
+            var option = options.thermostat.targetTemperature ?? {};
+
+            if (isNaN(option.min) || isNaN(option.max))
+                break;
+
+            for (var i = 0; i < 12; i++)
+            {
+                var item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
+                list.push(item + 'Time');
+                list.push(item + 'Temperature');
+                options[item + 'Temperature'] = option;
+            }
+
+            break;
+
         default:
-            list = [expose];
+            list.push(expose);
             break;
     }
 
@@ -71,7 +102,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         var controlCell = row.insertCell();
 
         row.dataset.name = name + suffix;
-        titleCell.innerHTML =  exposeTitle(name, options['name'] ?? endpoint);
+        titleCell.innerHTML =  exposeTitle(name, options.name ?? endpoint);
         valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
         valueCell.classList.add('value');
         controlCell.classList.add('control');
@@ -87,7 +118,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 break;
 
             case 'colorTemperature':
-                var option = options['colorTemperature'] ?? {};
+                var option = options.colorTemperature ?? {};
                 controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {colorTemperature: parseInt(this.value)}); });
@@ -111,11 +142,13 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
             // bool
             case 'autoBrightness':
+            case 'boost':
             case 'calibration':
             case 'childLock':
             case 'co2LongChart':
             case 'co2Relay':
             case 'co2RelayInvert':
+            case 'ecoMode':
             case 'interlock':
             case 'nightBacklight':
             case 'pressureLongChart':
@@ -143,21 +176,36 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
             // number
             case 'altitude':
+            case 'boostTimeout':
             case 'co2High':
             case 'co2Low':
             case 'co2ManualCalibration':
             case 'detectionDelay':
             case 'distanceMax':
             case 'distanceMin':
+            case 'ecoTemperature':
             case 'fadingTime':
-            case 'heatingPoint':
             case 'humidityOffset':
             case 'pattern':
             case 'reportingDelay':
             case 'sensitivity':
+            case 'targetTemperature':
             case 'temperatureOffset':
             case 'threshold':
             case 'timer':
+            //
+            case 'saturdayP1Temperature':
+            case 'saturdayP2Temperature':
+            case 'saturdayP3Temperature':
+            case 'saturdayP4Temperature':
+            case 'sundayP1Temperature':
+            case 'sundayP2Temperature':
+            case 'sundayP3Temperature':
+            case 'sundayP4Temperature':
+            case 'weekdayP1Temperature':
+            case 'weekdayP2Temperature':
+            case 'weekdayP3Temperature':
+            case 'weekdayP4Temperature':
 
                 var option = options[name] ?? {};
 
@@ -182,6 +230,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'operationMode':
             case 'rightMode':
             case 'sensitivityMode':
+            case 'sensorType':
             case 'switchMode':
             case 'switchType':
 
@@ -190,6 +239,23 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
                 options[name].forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
+                break;
+
+            // time
+            case 'saturdayP1Time':
+            case 'saturdayP2Time':
+            case 'saturdayP3Time':
+            case 'saturdayP4Time':
+            case 'sundayP1Time':
+            case 'sundayP2Time':
+            case 'sundayP3Time':
+            case 'sundayP4Time':
+            case 'weekdayP1Time':
+            case 'weekdayP2Time':
+            case 'weekdayP3Time':
+            case 'weekdayP4Time':
+                controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
+                controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
                 break;
 
             default:
@@ -213,60 +279,100 @@ function updateExpose(endpoint, name, value)
     var row = document.querySelector('.deviceInfo table.exposes tr[data-name="' + name + suffix + '"]');
     var cell = row ? row.querySelector('td.value') : null;
 
-    if (!cell)
-        return;
-
-    switch (name)
+    if (cell)
     {
-        case 'color':
-            colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
-            cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
-            break;
-
-        case 'status':
-            cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
-            break;
-
-        // number
-        case 'colorTemperature':
-        case 'level':
-        case 'position':
-        //
-        case 'altitude':
-        case 'co2High':
-        case 'co2Low':
-        case 'co2ManualCalibration':
-        case 'detectionDelay':
-        case 'distanceMax':
-        case 'distanceMin':
-        case 'fadingTime':
-        case 'heatingPoint':
-        case 'humidityOffset':
-        case 'pattern':
-        case 'reportingDelay':
-        case 'sensitivity':
-        case 'temperatureOffset':
-        case 'threshold':
-        case 'timer':
-
-            var control = document.querySelector('.deviceInfo .exposes tr[data-name="' + name + suffix + '"] td.control input');
-
-            if (name == 'level')
-                value = Math.round(value * 100 / 255);
-
-            if (cell.dataset.value == value)
+        switch (name)
+        {
+            case 'color':
+                colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
+                cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
                 break;
 
-            if (control)
-                control.value = value;
+            case 'status':
+                cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
+                break;
 
-            cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
-            break;
+            // number
+            case 'colorTemperature':
+            case 'level':
+            case 'position':
+            //
+            case 'altitude':
+            case 'boostTimeout':
+            case 'co2High':
+            case 'co2Low':
+            case 'co2ManualCalibration':
+            case 'detectionDelay':
+            case 'distanceMax':
+            case 'distanceMin':
+            case 'ecoTemperature':
+            case 'fadingTime':
+            case 'humidityOffset':
+            case 'pattern':
+            case 'reportingDelay':
+            case 'sensitivity':
+            case 'targetTemperature':
+            case 'temperatureOffset':
+            case 'threshold':
+            case 'timer':
+            //
+            case 'saturdayP1Temperature':
+            case 'saturdayP2Temperature':
+            case 'saturdayP3Temperature':
+            case 'saturdayP4Temperature':
+            case 'sundayP1Temperature':
+            case 'sundayP2Temperature':
+            case 'sundayP3Temperature':
+            case 'sundayP4Temperature':
+            case 'weekdayP1Temperature':
+            case 'weekdayP2Temperature':
+            case 'weekdayP3Temperature':
+            case 'weekdayP4Temperature':
 
-        default:
-            cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + (row.dataset.option != 'raw' ? exposeUnit(name) : '') : value;
-            break;
+                var input = document.querySelector('.deviceInfo .exposes tr[data-name="' + name + suffix + '"] td.control input');
+
+                if (name == 'level')
+                    value = Math.round(value * 100 / 255);
+
+                if (cell.dataset.value == value)
+                    break;
+
+                if (input)
+                    input.value = value;
+
+                cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
+                break;
+
+            default:
+                cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + (row.dataset.option != 'raw' ? exposeUnit(name) : '') : value;
+                break;
+        }
+
+        cell.dataset.value = value;
+        return;
     }
 
-    cell.dataset.value = value;
+    if (name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
+    {
+        var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
+        var cell = document.querySelector('.deviceInfo .exposes tr[data-name="' + item + '"] td.value');
+
+        if (cell && (name.endsWith('Hour') || name.endsWith('Minute')))
+        {
+            var input = document.querySelector('.deviceInfo .exposes tr[data-name="' + item + '"] td.control input[type="time"]');
+            var time;
+
+            if (!input)
+                return;
+
+            if (value < 10)
+                value = '0' + value;
+
+            time = input.value.split(':');
+            input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
+
+            cell.dataset.value = input.value;
+            cell.innerHTML = input.value;
+        }
+    }
 }

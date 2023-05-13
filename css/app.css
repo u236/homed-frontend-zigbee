@@ -92,8 +92,8 @@ body[theme="dark"] {
     font-family: var(--font-family);
     margin-bottom: 10px;
     padding: 0 5px;
-    width: 100%;
     height: 30px;
+    width: 100%;
 }
 
 .homed input[type="checkbox"] {
@@ -107,8 +107,8 @@ body[theme="dark"] {
     border: 2px solid var(--background-main);
     border-radius: 5px;
     margin-left: -2px;
-    width: 100%;
     height: 5px;
+    width: 100%;
 }
 
 .homed input[type="range"]::-webkit-slider-thumb {
@@ -127,6 +127,12 @@ body[theme="dark"] {
     box-shadow: 0 0 2px #666666;
     height: 13px;
     width: 13px;
+}
+
+.homed input[type="time"] {
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    height: 14px;
 }
 
 .homed input.level {
@@ -253,8 +259,8 @@ body[theme="dark"] {
     border-top: 2px solid var(--border-loader);
     border-radius: 50%;
     margin: 20px auto;
-    width: 20px;
     height: 20px;
+    width: 20px;
 }
 
 .homed .fade-in {
@@ -324,7 +330,6 @@ body[theme="dark"] {
 }
 
 .homed .deviceInfo td:first-child {
-
     min-width: 150px;
     width: 25%;
 }
@@ -368,6 +373,11 @@ body[theme="dark"] {
     color: var(--color-highlight);
 }
 
+.homed .deviceInfo .exposes .control button {
+    height: 18px;
+    margin: 0 5px;
+}
+
 .homed .presetList {
     display: none;
 }
@@ -401,8 +411,8 @@ body[theme="dark"] {
     box-sizing: border-box;
     display: block;
     margin: 10px 5px;
-    width: calc(100% - 10px);
     height: calc(100vh - var(--header-height) - var(--footer-height) - 60px);
+    width: calc(100% - 10px);
 }
 
 .homed #map text {
