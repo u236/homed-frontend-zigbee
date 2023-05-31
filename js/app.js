@@ -301,7 +301,7 @@ function showPage(name, force = false)
 
                     device.neighbors.forEach(neighbor =>
                     {
-                        if (!zigbeeData.devices.find(item => { return item.networkAddress == neighbor.networkAddress; }))
+                        if (!zigbeeData.devices.find(item => { return !item.removed && item.networkAddress == neighbor.networkAddress; }))
                             return;
 
                         data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.networkAddress});
