@@ -75,7 +75,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
             if (options.thermostatProgram == 'moes')
             {
-                var types = ["weekday", "saturday", "sunday"];
+                var types = ['weekday', 'saturday', 'sunday'];
                 var option = options.thermostat.targetTemperature ?? {};
 
                 if (isNaN(option.min) || isNaN(option.max))
@@ -91,7 +91,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             }
             else
             {
-                var types = ["weekday", "holiday"];
+                var types = ['weekday', 'holiday'];
                 var option = options.thermostat.targetTemperature ?? {};
 
                 if (isNaN(option.min) || isNaN(option.max))
@@ -133,7 +133,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         {
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
-                colorPicker.on("input:end", function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                colorPicker.on('input:end', function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
 
             case 'colorTemperature':
