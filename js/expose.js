@@ -62,13 +62,9 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             break;
 
         case 'thermostat':
-
-            list = ['temperature', 'heating'];
-            options = options.thermostat ?? {};
-
-            if (options)
-                Object.keys(options).forEach(item => { if (item != 'operationMode' && item != 'systemMode') list.push(item); else list.unshift(item); } );
-
+            var controls = ['systemMode', 'operationMode', 'targetTemperature'];
+            controls.forEach(function(item) { if (options[item]) list.push(item); });
+            list.push('temperature', 'heating');
             break;
 
         case 'thermostatProgram':
@@ -76,7 +72,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             if (options.thermostatProgram == 'moes')
             {
                 var types = ['weekday', 'saturday', 'sunday'];
-                var option = options.thermostat.targetTemperature ?? {};
+                var option = options.targetTemperature ?? {};
 
                 if (isNaN(option.min) || isNaN(option.max))
                     break;
@@ -92,7 +88,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             else
             {
                 var types = ['weekday', 'holiday'];
-                var option = options.thermostat.targetTemperature ?? {};
+                var option = options.targetTemperature ?? {};
 
                 if (isNaN(option.min) || isNaN(option.max))
                     break;
