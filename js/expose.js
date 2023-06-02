@@ -12,7 +12,7 @@ function exposeTitle(name, suffix)
         default:     title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
     }
 
-    if (['p1', 'p2', 'p3', 'p4'].includes(title[1]))
+    if (['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].includes(title[1]))
         title[1] = title[1].toUpperCase();
 
     return title.join(' ') + (suffix != 'common' ? ' ' + suffix : '');
@@ -67,24 +67,43 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             options = options.thermostat ?? {};
 
             if (options)
-                Object.keys(options).forEach(item => { if (item != 'status') list.push(item); else list.unshift('switch'); } );
+                Object.keys(options).forEach(item => { if (item != 'operationMode' && item != 'systemMode') list.push(item); else list.unshift(item); } );
 
             break;
 
         case 'thermostatProgram':
 
-            var types = ["weekday", "saturday", "sunday"];
-            var option = options.thermostat.targetTemperature ?? {};
-
-            if (isNaN(option.min) || isNaN(option.max))
-                break;
-
-            for (var i = 0; i < 12; i++)
+            if (options.thermostatProgram == 'moes')
             {
-                var item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
-                list.push(item + 'Time');
-                list.push(item + 'Temperature');
-                options[item + 'Temperature'] = option;
+                var types = ["weekday", "saturday", "sunday"];
+                var option = options.thermostat.targetTemperature ?? {};
+
+                if (isNaN(option.min) || isNaN(option.max))
+                    break;
+
+                for (var i = 0; i < 12; i++)
+                {
+                    var item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
+                    list.push(item + 'Time');
+                    list.push(item + 'Temperature');
+                    options[item + 'Temperature'] = option;
+                }
+            }
+            else
+            {
+                var types = ["weekday", "holiday"];
+                var option = options.thermostat.targetTemperature ?? {};
+
+                if (isNaN(option.min) || isNaN(option.max))
+                    break;
+
+                for (var i = 0; i < 12; i++)
+                {
+                    var item = types[parseInt(i / 6)] + 'P' + parseInt(i % 6 + 1);
+                    list.push(item + 'Time');
+                    list.push(item + 'Temperature');
+                    options[item + 'Temperature'] = option;
+                }
             }
 
             break;
@@ -168,7 +187,12 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             // percentage
             case 'level':
             case 'position':
+
                 valueCell.dataset.unit = '%';
+
+                if (!list.includes('cover'))
+                    break;
+
                 controlCell.innerHTML = '<input type="range" min="1" max="100" class="' + name + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
@@ -176,10 +200,13 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
             // number
             case 'altitude':
+            case 'awayDays':
+            case 'awayTemperature':
             case 'boostTimeout':
             case 'co2High':
             case 'co2Low':
             case 'co2ManualCalibration':
+            case 'comfortTemperature':
             case 'detectionDelay':
             case 'distanceMax':
             case 'distanceMin':
@@ -194,6 +221,12 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'threshold':
             case 'timer':
             //
+            case 'holidayP1Temperature':
+            case 'holidayP2Temperature':
+            case 'holidayP3Temperature':
+            case 'holidayP4Temperature':
+            case 'holidayP5Temperature':
+            case 'holidayP6Temperature':
             case 'saturdayP1Temperature':
             case 'saturdayP2Temperature':
             case 'saturdayP3Temperature':
@@ -206,6 +239,9 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'weekdayP2Temperature':
             case 'weekdayP3Temperature':
             case 'weekdayP4Temperature':
+            case 'weekdayP5Temperature':
+            case 'weekdayP6Temperature':
+
 
                 var option = options[name] ?? {};
 
@@ -233,6 +269,8 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'sensorType':
             case 'switchMode':
             case 'switchType':
+            case 'systemMode':
+            case 'weekMode':
 
                 if (!options[name])
                     break;
@@ -242,6 +280,12 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 break;
 
             // time
+            case 'holidayP1Time':
+            case 'holidayP2Time':
+            case 'holidayP3Time':
+            case 'holidayP4Time':
+            case 'holidayP5Time':
+            case 'holidayP6Time':
             case 'saturdayP1Time':
             case 'saturdayP2Time':
             case 'saturdayP3Time':
@@ -254,6 +298,8 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'weekdayP2Time':
             case 'weekdayP3Time':
             case 'weekdayP4Time':
+            case 'weekdayP5Time':
+            case 'weekdayP6Time':
                 controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
                 controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
                 break;
@@ -298,10 +344,13 @@ function updateExpose(endpoint, name, value)
             case 'position':
             //
             case 'altitude':
+            case 'awayDays':
+            case 'awayTemperature':
             case 'boostTimeout':
             case 'co2High':
             case 'co2Low':
             case 'co2ManualCalibration':
+            case 'comfortTemperature':
             case 'detectionDelay':
             case 'distanceMax':
             case 'distanceMin':
@@ -316,6 +365,12 @@ function updateExpose(endpoint, name, value)
             case 'threshold':
             case 'timer':
             //
+            case 'holidayP1Temperature':
+            case 'holidayP2Temperature':
+            case 'holidayP3Temperature':
+            case 'holidayP4Temperature':
+            case 'holidayP5Temperature':
+            case 'holidayP6Temperature':
             case 'saturdayP1Temperature':
             case 'saturdayP2Temperature':
             case 'saturdayP3Temperature':
@@ -328,6 +383,8 @@ function updateExpose(endpoint, name, value)
             case 'weekdayP2Temperature':
             case 'weekdayP3Temperature':
             case 'weekdayP4Temperature':
+            case 'weekdayP5Temperature':
+            case 'weekdayP6Temperature':
 
                 var input = document.querySelector('.deviceInfo .exposes tr[data-name="' + name + suffix + '"] td.control input');
 
@@ -352,7 +409,7 @@ function updateExpose(endpoint, name, value)
         return;
     }
 
-    if (name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
+    if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
     {
         var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
         var cell = document.querySelector('.deviceInfo .exposes tr[data-name="' + item + '"] td.value');
