@@ -121,7 +121,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         var controlCell = row.insertCell();
 
         row.dataset.name = name + suffix;
-        titleCell.innerHTML =  exposeTitle(name, options.name ?? endpoint);
+        titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
         valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
         valueCell.classList.add('value');
         controlCell.classList.add('control');
@@ -129,34 +129,34 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         if (options[name] == 'raw')
             row.dataset.option = 'raw';
 
-        switch (name)
+        switch (name.split('-')[0])
         {
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
-                colorPicker.on('input:end', function() { sendData(endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                colorPicker.on('input:end', function() { sendData(endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
 
             case 'colorTemperature':
                 var option = options.colorTemperature ?? {};
                 controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {colorTemperature: parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseInt(this.value)}); });
                 break;
 
             case 'cover':
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {cover: item.innerHTML}); } }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
                 break;
 
             case 'powerOnStatus':
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>previous</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {powerOnStatus: item.innerHTML}); } }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
                 break;
 
             case 'switch':
-                row.dataset.name = 'status' + suffix;
+                row.dataset.name = name.replace('switch', 'status') + suffix;
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) sendData(endpoint, {status: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
             // bool
@@ -242,7 +242,6 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'weekdayP5Temperature':
             case 'weekdayP6Temperature':
 
-
                 var option = options[name] ?? {};
 
                 if (isNaN(option.min) || isNaN(option.max))
@@ -327,7 +326,7 @@ function updateExpose(endpoint, name, value)
 
     if (cell)
     {
-        switch (name)
+        switch (name.split('-')[0])
         {
             case 'color':
                 colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
