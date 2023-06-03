@@ -150,7 +150,8 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 break;
 
             case 'switch':
-                row.dataset.name = name.replace('switch', 'status') + suffix;
+                name = name.replace('switch', 'status');
+                row.dataset.name = name + suffix;
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
