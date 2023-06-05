@@ -117,7 +117,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         var controlCell = row.insertCell();
 
         row.dataset.name = name + suffix;
-        titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
+        titleCell.innerHTML = exposeTitle(name.replace('_', ' '), options.name ?? endpoint);
         valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
         valueCell.classList.add('value');
         controlCell.classList.add('control');
@@ -125,7 +125,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         if (options[name] == 'raw')
             row.dataset.option = 'raw';
 
-        switch (name.split('-')[0])
+        switch (name.split('_')[0])
         {
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
@@ -187,7 +187,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
                 valueCell.dataset.unit = '%';
 
-                if (!list.includes('cover'))
+                if (name.startsWith('position') && !list.includes('cover'))
                     break;
 
                 controlCell.innerHTML = '<input type="range" min="1" max="100" class="' + name + '">';
@@ -323,7 +323,7 @@ function updateExpose(endpoint, name, value)
 
     if (cell)
     {
-        switch (name.split('-')[0])
+        switch (name.split('_')[0])
         {
             case 'color':
                 colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
