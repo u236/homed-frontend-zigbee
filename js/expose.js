@@ -27,7 +27,7 @@ function exposeUnit(name)
         case 'co2':            unit = 'ppm'; break;
         case 'current':        unit = 'A'; break;
         case 'energy':         unit = 'kW·h'; break;
-        case 'illuminance':    unit = 'lux';  break;
+        case 'illuminance':    unit = 'lx';  break;
         case 'power':          unit = 'W'; break;
         case 'pressure':       unit = 'kPa'; break;
         case 'targetDistance': unit = 'm'; break;
@@ -207,9 +207,11 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'detectionDelay':
             case 'distanceMax':
             case 'distanceMin':
+            case 'duration':
             case 'ecoTemperature':
             case 'fadingTime':
             case 'humidityOffset':
+            case 'melody':
             case 'pattern':
             case 'reportingDelay':
             case 'sensitivity':
@@ -266,6 +268,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'switchMode':
             case 'switchType':
             case 'systemMode':
+            case 'volumeMode':
             case 'weekMode':
 
                 if (!options[name])
@@ -350,9 +353,11 @@ function updateExpose(endpoint, name, value)
             case 'detectionDelay':
             case 'distanceMax':
             case 'distanceMin':
+            case 'duration':
             case 'ecoTemperature':
             case 'fadingTime':
             case 'humidityOffset':
+            case 'melody':
             case 'pattern':
             case 'reportingDelay':
             case 'sensitivity':
