@@ -122,7 +122,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         valueCell.classList.add('value');
         controlCell.classList.add('control');
 
-        if (options[name] == 'raw')
+        if (options[name.split('_')[0]] == 'raw')
             row.dataset.option = 'raw';
 
         switch (name.split('_')[0])
@@ -144,11 +144,6 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
                 break;
 
-            case 'powerOnStatus':
-                controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>previous</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
-                break;
-
             case 'switch':
                 name = name.replace('switch', 'status');
                 row.dataset.name = name + suffix;
@@ -157,6 +152,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 break;
 
             // bool
+            case 'alarm':
             case 'autoBrightness':
             case 'boost':
             case 'calibration':
@@ -165,11 +161,17 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'co2Relay':
             case 'co2RelayInvert':
             case 'ecoMode':
+            case 'humidityRelay':
+            case 'humidityRelayInvert':
             case 'interlock':
             case 'nightBacklight':
             case 'pressureLongChart':
+            case 'temperatureRelay':
+            case 'temperatureRelayInvert':
             case 'reverse':
             case 'statusMemory':
+            case 'vocRelay':
+            case 'vocRelayInvert':
                 controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) {  valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); } }) );
                 break;
@@ -241,7 +243,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'weekdayP5Temperature':
             case 'weekdayP6Temperature':
 
-                var option = options[name] ?? {};
+                var option = options[name.split('_')[0]] ?? {};
 
                 if (isNaN(option.min) || isNaN(option.max))
                     break;
@@ -262,6 +264,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'leftMode':
             case 'lightType':
             case 'operationMode':
+            case 'powerOnStatus':
             case 'rightMode':
             case 'sensitivityMode':
             case 'sensorType':
@@ -271,10 +274,12 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'volumeMode':
             case 'weekMode':
 
-                if (!options[name])
+                var option = options[name.split('_')[0]] ?? {};
+
+                if (!option.enum)
                     break;
 
-                options[name].forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
+                option.enum.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
                 break;
 
